@@ -882,3 +882,11 @@ javax/swing/JInternalFrame/8146321/JInternalFrameIconTest.java 8260331 linux-x64
 
 
 ############################################################################
+
+
+
+# added for jtreg 6
+
+jdk/editpad/EditPadTest.java                                        8266782 windows-all
+
+tools/jmod/hashes/HashesTest.java                                   8266461 generic-all
