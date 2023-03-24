@@ -28,8 +28,11 @@ package com.sun.tools.javac.tree;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.lang.model.element.Name;
 import javax.tools.Diagnostic;
@@ -572,68 +575,29 @@ public class DocTreeMaker implements DocTreeFactory {
                             foundFirstSentence = true;
                         }
 
-                        case TEXT -> {
-                            var dtPos = dt.pos;
-                            var s = ((DCText) dt).getBody();
-                            var peekedNext = iter.hasNext()
-                                    ? alist.get(iter.nextIndex())
-                                    : null;
-                            int sbreak = getSentenceBreak(s, peekedNext);
-                            if (sbreak > 0) {
-                                var fsPart = m.at(dtPos).newTextTree(s.substring(0, sbreak).stripTrailing());
+                        case TEXT, MARKDOWN -> {
+                            var peekedNext = iter.hasNext() ? alist.get(iter.nextIndex()) : null;
+                            var content = getContent(dt);
+                            int breakOffset = getSentenceBreak(content, peekedNext);
+                            if (breakOffset > 0) {
+                                // the end of sentence is within the current node;
+                                // split it, skipping whitespace in between the two parts
+                                var fsPart = newNode(dt.getKind(), dt.pos, content.substring(0, breakOffset).stripTrailing());
                                 fs.add(fsPart);
-                                int offsetPos = skipWhiteSpace(s, sbreak);
-                                if (offsetPos > 0) {
-                                    DCText bodyPart = m.at(dtPos + offsetPos).newTextTree(s.substring(offsetPos));
+                                int wsOffset = skipWhiteSpace(content, breakOffset);
+                                if (wsOffset > 0) {
+                                    var bodyPart = newNode(dt.getKind(), dt.pos + wsOffset, content.substring(wsOffset));
                                     body.add(bodyPart);
                                 }
                                 foundFirstSentence = true;
-                            } else if (peekedNext != null) {
-                                // if the next doctree is a break, remove trailing spaces
-                                if (isSentenceBreak(peekedNext, false)) {
-                                    DCTree next = iter.next();
-                                    DCText fsPart = m.at(dtPos).newTextTree(s.stripTrailing());
-                                    fs.add(fsPart);
-                                    body.add(next);
-                                    foundFirstSentence = true;
-                                } else {
-                                    fs.add(dt);
-                                }
-                            } else {
-                                fs.add(dt);
-                            }
-                        }
-
-                        // TODO: merge MARKDOWN and TEXT code, perhaps with generic method
-                        case MARKDOWN -> {
-                            var dtPos = dt.pos;
-                            DCRawText mt = (DCRawText) dt;
-                            String s = mt.getContent();
-                            DCTree peekedNext = iter.hasNext()
-                                    ? alist.get(iter.nextIndex())
-                                    : null;
-                            int sbreak = getSentenceBreak(s, peekedNext);
-                            if (sbreak > 0) {
-                                var fsPart = m.at(dtPos).newRawTextTree(DocTree.Kind.MARKDOWN, s.substring(0, sbreak).stripTrailing());
+                            } else if (peekedNext != null && isSentenceBreak(peekedNext, false)) {
+                                // the next node is a sentence break, so this is the end of the first sentence;
+                                // remove trailing spaces
+                                var fsPart = newNode(dt.getKind(), dt.pos, content.stripTrailing());
                                 fs.add(fsPart);
-                                int offsetPos = skipWhiteSpace(mt.getContent(), sbreak);
-                                if (offsetPos > 0) {
-                                    DCRawText bodyPart = m.at(dtPos + offsetPos).newRawTextTree(Kind.MARKDOWN, mt.getContent().substring(offsetPos));
-                                    body.add(bodyPart);
-                                }
                                 foundFirstSentence = true;
-                            } else if (peekedNext != null) {
-                                // if the next doctree is a break, remove trailing spaces
-                                if (isSentenceBreak(peekedNext, false)) {
-                                    DCTree next = iter.next();
-                                    DCRawText fsPart = m.at(dtPos).newRawTextTree(Kind.MARKDOWN, s.stripTrailing());
-                                    fs.add(fsPart);
-                                    body.add(next);
-                                    foundFirstSentence = true;
-                                } else {
-                                    fs.add(dt);
-                                }
                             } else {
+                                // no sentence break found; keep scanning
                                 fs.add(dt);
                             }
                         }
@@ -665,34 +629,20 @@ public class DocTreeMaker implements DocTreeFactory {
             }
         }
 
-        /*
-         * Computes the first sentence break, a simple dot-space algorithm.
-         */
-        private int defaultSentenceBreak(String s) {
-            // scan for period followed by whitespace
-            int period = -1;
-            for (int i = 0; i < s.length(); i++) {
-                switch (s.charAt(i)) {
-                    case '.':
-                        period = i;
-                        break;
+        private String getContent(DCTree dt) {
+            return switch (dt.getKind()) {
+                case TEXT -> ((DCText) dt).text;
+                case MARKDOWN -> ((DCRawText) dt).code;
+                default -> throw new IllegalArgumentException(dt.getKind().toString());
+            };
+        }
 
-                    case ' ':
-                    case '\f':
-                    case '\n':
-                    case '\r':
-                    case '\t':
-                        if (period >= 0) {
-                            return i;
-                        }
-                        break;
-
-                    default:
-                        period = -1;
-                        break;
-                }
-            }
-            return -1;
+        private DCTree newNode(DocTree.Kind kind, int pos, String text) {
+            return switch (kind) {
+                case TEXT -> m.at(pos).newTextTree(text);
+                case MARKDOWN -> m.at(pos).newRawTextTree(kind, text);
+                default -> throw new IllegalArgumentException(kind.toString());
+            };
         }
 
         /*
@@ -763,6 +713,36 @@ public class DocTreeMaker implements DocTreeFactory {
                 return sbrk2;
             }
             return -1; // indeterminate at this time
+        }
+
+        /*
+         * Computes the first sentence break, a simple dot-space algorithm.
+         */
+        private int defaultSentenceBreak(String s) {
+            // scan for period followed by whitespace
+            int period = -1;
+            for (int i = 0; i < s.length(); i++) {
+                switch (s.charAt(i)) {
+                    case '.':
+                        period = i;
+                        break;
+
+                    case ' ':
+                    case '\f':
+                    case '\n':
+                    case '\r':
+                    case '\t':
+                        if (period >= 0) {
+                            return i;
+                        }
+                        break;
+
+                    default:
+                        period = -1;
+                        break;
+                }
+            }
+            return -1;
         }
 
         private boolean isSentenceBreak(DCTree dt, boolean isFirstDocTree) {
