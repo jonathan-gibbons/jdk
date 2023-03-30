@@ -35,10 +35,9 @@
  * {@linkplain StartElementTree start} and {@linkplain EndElementTree end} HTML elements,
  * and uninterpreted {@linkplain RawTextTree raw text}, such as for Markdown.
  *
+ * @spec javadoc/doc-comment-spec.html Documentation Comment Specification for the Standard Doclet
  * @author Jonathan Gibbons
  * @since 1.8
  *
- * @see <a href="{@docRoot}/../specs/javadoc/doc-comment-spec.html">
- *      Documentation Comment Specification for the Standard Doclet</a>
  */
 package com.sun.source.doctree;
