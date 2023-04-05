@@ -192,9 +192,6 @@ public class DocCommentParser {
         while (bp < buflen) {
             switch (ch) {
                 case '\n': case '\r': case '\f':
-                    newline = true;
-                    // fallthrough
-
                 case ' ': case '\t':
                     nextChar();
                     break;
@@ -455,9 +452,6 @@ public class DocCommentParser {
         while (bp < buflen) {
             switch (ch) {
                 case '\n': case '\r': case '\f':
-                    newline = true;
-                    break;
-
                 case ' ': case '\t':
                     break;
 
@@ -502,9 +496,6 @@ public class DocCommentParser {
         while (bp < buflen) {
             switch (ch) {
                 case '\n': case '\r': case '\f':
-                    newline = true;
-                    // fallthrough
-
                 case ' ': case '\t':
                     if (depth == 0)
                         break loop;
@@ -582,9 +573,6 @@ public class DocCommentParser {
         while (bp < buflen) {
             switch (ch) {
                 case '\n': case '\r': case '\f':
-                    newline = true;
-                    break;
-
                 case ' ': case '\t':
                     break;
 
@@ -607,7 +595,6 @@ public class DocCommentParser {
      * Reads a term (that is, one word).
      * It is an error if the beginning of the next tag is detected.
      */
-    @SuppressWarnings("fallthrough")
     protected DCText inlineWord() {
         int pos = bp;
         int depth = 0;
@@ -615,23 +602,22 @@ public class DocCommentParser {
         while (bp < buflen) {
             switch (ch) {
                 case '\n':
-                    newline = true;
-                    // fallthrough
-
                 case '\r': case '\f': case ' ': case '\t':
                     return m.at(pos).newTextTree(newString(pos, bp));
 
                 case '@':
                     if (newline)
                         break loop;
+                    break;
 
                 case '{':
                     depth++;
                     break;
 
                 case '}':
-                    if (depth == 0 || --depth == 0)
+                    if (depth == 0)
                         return m.at(pos).newTextTree(newString(pos, bp));
+                    depth--;
                     break;
             }
             newline = false;
@@ -663,9 +649,6 @@ public class DocCommentParser {
 
             switch (ch) {
                 case '\n': case '\r': case '\f':
-                    newline = true;
-                    // fall through
-
                 case ' ': case '\t':
                     nextChar();
                     break;
