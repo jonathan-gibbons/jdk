@@ -28,6 +28,7 @@ package com.sun.tools.javac.parser;
 import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.sun.source.doctree.AttributeTree.ValueKind;
 import com.sun.source.doctree.DocTree;
@@ -168,13 +169,35 @@ public class DocCommentParser {
     void nextChar() {
         ch = buf[bp < buflen ? ++bp : buflen];
         switch (ch) {
-            case '\f': case '\n': case '\r':
+            case '\n' -> {
                 newline = true;
+            }
+
+            case '\r' -> {
+                if (bp + 1 < buflen && buf[bp + 1] == '\n') {
+                    bp++;
+                    ch = '\n';
+                }
+                newline = true;
+            }
         }
     }
 
     char peekChar() {
         return buf[bp < buflen ? bp + 1 : buflen];
+    }
+
+    String peekLine() {
+        int p = bp;
+        while (p < buflen) {
+             switch (buf[p]) {
+                 case '\n', '\r' -> {
+                     return newString(bp, p);
+                 }
+                 default -> p++;
+             }
+        }
+        return newString(bp, buflen);
     }
 
     protected List<DCTree> blockContent() {
@@ -207,14 +230,37 @@ public class DocCommentParser {
         ListBuffer<DCTree> trees = new ListBuffer<>();
         textStart = -1;
 
-        int depth = phase == Phase.INLINE ? 1 : -1; // only used when phase is INLINE
-        int pos = bp;                               // only used when phase is INLINE
+        int depth = 1;                  // only used when phase is INLINE
+        int pos = bp;                   // only used when phase is INLINE
+        LineKind lineKind = textKind == DocTree.Kind.MARKDOWN ? peekLineKind() : null;
 
         loop:
         while (bp < buflen) {
             switch (ch) {
-                case '\n', '\r', '\f', ' ', '\t' ->
+                case '\n', '\r' -> {
                     nextChar();
+                    if (textKind == DocTree.Kind.MARKDOWN) {
+//                        // FIXME?
+//                        if (textStart == -1) {
+//                            textStart = bp;
+//                        }
+                        int indent = readIndent();
+                        // in the following, the evaluation of INDENTED_CODE_BLOCK is
+                        // inductively a sequence of indented lines following any
+                        // line that is not OTHER
+                        lineKind = (ch == '\n' || ch == '\r') ? LineKind.BLANK
+                                : (indent <= 3) ? peekLineKind()
+                                : lineKind != LineKind.OTHER ? LineKind.INDENTED_CODE_BLOCK
+                                : LineKind.OTHER;
+                        if (lineKind == LineKind.INDENTED_CODE_BLOCK) {
+                            skipLine();
+                        }
+                    }
+                }
+
+                case ' ', '\t' -> {
+                    nextChar();
+                }
 
 
                 case '&' -> {
@@ -325,6 +371,30 @@ public class DocCommentParser {
                         break;
                     }
                     defaultContentCharacter();
+                }
+
+                case '`', '~' -> {
+                    switch (textKind) {
+                        case MARKDOWN -> {
+                            newline = false;
+                            if (textStart == -1) {
+                                textStart = bp;
+                            }
+                            lastNonWhite = bp;
+                            if (ch == '`' || ch == '~' && lineKind == LineKind.CODE_FENCE) {
+                                int end = skipMarkdownCode(ch, count(ch), lineKind);
+                                if (end == -1) {
+                                    bp = lastNonWhite;
+                                    nextChar();
+                                }
+                            } else {
+                                nextChar();
+                            }
+                        }
+                        case TEXT -> {
+                            defaultContentCharacter();
+                        }
+                    }
                 }
 
                 default -> {
@@ -1155,6 +1225,149 @@ public class DocCommentParser {
         while (bp < buflen && Character.isUnicodeIdentifierPart(ch) || ch == '.')
             nextChar();
         return names.fromChars(buf, pos, bp - pos);
+    }
+
+    protected int readIndent() {
+        int indent = 0;
+        while (bp < buflen) {
+            switch (ch) {
+                case ' ' -> indent++;
+                case '\t' -> indent = 4;
+                default -> {
+                    return indent;
+                }
+            }
+            nextChar();
+        }
+        return indent;
+    }
+
+    int count(char c) {
+        int n = 1;
+        nextChar();
+        while (bp < buflen && ch == c) {
+            n++;
+            nextChar();
+        }
+        return n;
+    }
+
+    void skipLine() {
+        while (bp < buflen) {
+            if (ch == '\n' || ch == '\r') {
+                return;
+            }
+            nextChar();
+        }
+    }
+
+    int skipMarkdownCode(char term, int count, LineKind initialLineKind) {
+        LineKind lineKind = null;
+        while (bp < buflen) {
+            switch (ch) {
+                case '\n', '\r' -> {
+                    nextChar();
+                    int indent = readIndent();
+                    lineKind = (ch == '\n' || ch == '\r') ? LineKind.BLANK
+                            : (indent <= 3) ? peekLineKind()
+                            : LineKind.OTHER;
+                    switch (initialLineKind) {
+                        case CODE_FENCE -> {
+                            if (lineKind == LineKind.CODE_FENCE && ch == term && count(ch) == count) {
+                                return bp;
+                            }
+                        }
+
+                        case OTHER -> {
+                            if (lineKind != LineKind.OTHER) {
+                                return -1;
+                            }
+                        }
+
+                        default -> {
+                            return -1;
+                        }
+
+                    }
+
+                }
+
+                default -> {
+                    if (ch == term && initialLineKind != LineKind.CODE_FENCE ) {
+                        if (count(ch) == count) {
+                            return bp;
+                        }
+                    }
+                    nextChar();
+                }
+
+            }
+        }
+        // found end of input
+        return -1;
+    }
+
+    enum LineKind {
+        BLANK(Pattern.compile("[ \t]*")),
+
+        /**
+         * ATX header: starts with 1 to 6 # characters, followed by space or end of line.
+         * @see <a href="https://spec.commonmark.org/0.30/#atx-headings">ATX Headings</a>
+         */
+        ATX_HEADER(Pattern.compile("#{1,6}( .*|$)")),
+
+        /** Setext header: underline is sequence of = or - followed by optional spaces and tabs.
+         *  @see <a href="https://spec.commonmark.org/0.30/#setext-headings">Setext Headings</a>
+         */
+        SETEXT_UNDERLINE(Pattern.compile("[=-]+[ \t]*")),
+
+        /**
+         * Thematic break: a line of + - _ interspersed with optional spaces and tabs
+         * @see <a href="https://spec.commonmark.org/0.30/#thematic-breaks">Thematic Break</a>
+         */
+        THEMATIC_BREAK(Pattern.compile("((\\+[ \t]*){3,})|((-[ \t]*){3,})|((_[ \t]*){3,})")),
+
+        /**
+         * Code fence: 3 or more back ticks or tildes; back tick fence cannot have back ticks
+         * in the info string.
+         * Note potential conflict with strikeout for similar reasons if strikeout is supported.
+         * @see <a href="https://spec.commonmark.org/0.30/#code-fence">Code Fence</a>
+         */
+        CODE_FENCE(Pattern.compile("(`{3,}[^`]*)|(~{3,}.*)")),
+
+        /**
+         * Indented code blocks are defined by preceding lines and indentation,
+         * not by any line-specific pattern.
+         * @see <a href="https://spec.commonmark.org/0.30/#indented-code-block">Indented Code Block</a>
+         */
+        INDENTED_CODE_BLOCK(null),
+
+        /**
+         * Everything else...
+         */
+        OTHER(Pattern.compile(".*"));
+
+        LineKind(Pattern p) {
+            this.pattern = p;
+        }
+
+        final Pattern pattern;
+    }
+
+    LineKind peekLineKind() {
+        switch (ch) {
+            case '#', '=', '-', '+', '_', '`', '~' -> {
+                String line = peekLine();
+                for (LineKind lk : LineKind.values()) {
+                    if (lk.pattern != null) {
+                        if (lk.pattern.matcher(line).matches()) {
+                            return lk;
+                        }
+                    }
+                }
+            }
+        }
+        return LineKind.OTHER;
     }
 
     protected boolean isDecimalDigit(char ch) {

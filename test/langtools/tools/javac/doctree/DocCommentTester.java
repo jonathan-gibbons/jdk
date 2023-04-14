@@ -964,7 +964,7 @@ public class DocCommentTester {
         }
 
         String normalizeFragment(String s) {
-            return s.replaceAll("\n[ \t]+@(?![@*])", "\n@");
+            return s.replaceAll("\n[ \t]+@(?!([@*]|dummy))", "\n@");
         }
 
         int copyLiteral(String s, int start, StringBuilder sb) {
