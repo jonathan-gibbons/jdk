@@ -21,12 +21,13 @@
  * questions.
  */
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,14 +89,14 @@ public class DocCommentTester {
     public void run(List<String> args) throws Exception {
         String testSrc = System.getProperty("test.src");
 
-        List<File> files = args.stream()
-                .map(arg -> new File(testSrc, arg))
+        List<Path> files = args.stream()
+                .map(arg -> Path.of(testSrc, arg))
                 .collect(Collectors.toList());
 
         JavacTool javac = JavacTool.create();
         StandardJavaFileManager fm = javac.getStandardFileManager(null, null, null);
 
-        Iterable<? extends JavaFileObject> fos = fm.getJavaFileObjectsFromFiles(files);
+        Iterable<? extends JavaFileObject> fos = fm.getJavaFileObjectsFromPaths(files);
 
         JavacTask t = javac.getTask(null, fm, null, null, null, fos);
         final DocTrees trees = DocTrees.instance(t);
@@ -243,7 +244,9 @@ public class DocCommentTester {
             int start = test.useBreakIterator
                     ? source.indexOf("\n/*\n" + BI_MARKER + "\n", findName(source, name))
                     : source.indexOf("\n/*\n", findName(source, name));
+            assert start >= 0 : "start of AST comment not found";
             int end = source.indexOf("\n*/\n", start);
+            assert end >= 0 : "end of AST comment not found";
             int startlen = start + (test.useBreakIterator ? BI_MARKER.length() + 1 : 0) + 4;
             String expect = source.substring(startlen, end + 1);
             if (!found.equals(expect)) {
@@ -267,26 +270,26 @@ public class DocCommentTester {
          * changes are approved, the new files can be used to replace the old.
          */
         public static void main(String... args) throws Exception {
-            List<File> files = new ArrayList<>();
-            File o = null;
+            List<Path> files = new ArrayList<>();
+            Path o = null;
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
                 if (arg.equals("-o"))
-                    o = new File(args[++i]);
+                    o = Path.of(args[++i]);
                 else if (arg.startsWith("-"))
                     throw new IllegalArgumentException(arg);
                 else {
-                    files.add(new File(arg));
+                    files.add(Path.of(arg));
                 }
             }
 
             if (o == null)
                 throw new IllegalArgumentException("no output dir specified");
-            final File outDir = o;
+            final Path outDir = o;
 
             JavacTool javac = JavacTool.create();
             StandardJavaFileManager fm = javac.getStandardFileManager(null, null, null);
-            Iterable<? extends JavaFileObject> fos = fm.getJavaFileObjectsFromFiles(files);
+            Iterable<? extends JavaFileObject> fos = fm.getJavaFileObjectsFromPaths(files);
 
             JavacTask t = javac.getTask(null, fm, null, null, null, fos);
             final DocTrees trees = DocTrees.instance(t);
@@ -305,8 +308,10 @@ public class DocCommentTester {
                     }
                     // remove existing gold by removing all block comments after the first '{'.
                     int start = source.indexOf("{");
+                    assert start >= 0 : "cannot find initial '{'";
                     while ((start = source.indexOf("\n/*\n", start)) != -1) {
                         int end = source.indexOf("\n*/\n");
+                        assert end >= 0 : "cannot find end of comment";
                         source = source.substring(0, start + 1) + source.substring(end + 4);
                     }
 
@@ -314,14 +319,12 @@ public class DocCommentTester {
                     super.visitCompilationUnit(tree, ignore);
 
                     // write the modified source
-                    File f = new File(tree.getSourceFile().getName());
-                    File outFile = new File(outDir, f.getName());
+                    var treeSourceFileName = tree.getSourceFile().getName();
+                    var outFile = outDir.resolve(treeSourceFileName);
                     try {
-                        try (FileWriter out = new FileWriter(outFile)) {
-                            out.write(source);
-                        }
+                        Files.writeString(outFile, source);
                     } catch (IOException e) {
-                        System.err.println("Can't write " + tree.getSourceFile().getName()
+                        System.err.println("Can't write " + treeSourceFileName
                                 + " to " + outFile + ": " + e);
                     }
                     return null;

@@ -477,6 +477,107 @@ DocComment[DOC_COMMENT, pos:0
 ]
 */
 
+    /**md
+     * {@summary abc ``code-span {@dummy ...}`` def {@code ...} }
+     * rest.
+     */
+    void codeSpanInInlineTag() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    Summary[SUMMARY, pos:4
+      summary: 3
+        RawText[MARKDOWN, pos:14, abc_``code-span_{@dummy_...}``_def_]
+        Literal[CODE, pos:49, ...]
+        RawText[MARKDOWN, pos:60, _]
+    ]
+  body: 1
+    RawText[MARKDOWN, pos:62, |_rest.]
+  block tags: empty
+]
+*/
 
+    /**md
+     * {@summary abc
+     * ```code-block
+     *   {@dummy ...}
+     * ```
+     * def {@code ...} }
+     * rest.
+     */
+    void codeBlockInInlineTag() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    Summary[SUMMARY, pos:4
+      summary: 3
+        RawText[MARKDOWN, pos:14, abc|_```code-block|___{@dummy_...}|_```|_def_]
+        Literal[CODE, pos:59, ...]
+        RawText[MARKDOWN, pos:70, _]
+    ]
+  body: 1
+    RawText[MARKDOWN, pos:72, |_rest.]
+  block tags: empty
+]
+*/
+
+    /**md
+     * abc `
+     * def
+     */
+    void unmatchedBackTick() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:4, abc_`|_def]
+  body: empty
+  block tags: empty
+]
+*/
+
+    /**md
+     * {@summary abc `
+     * def}
+     * rest
+     */
+    void unmatchedBackTickInInline() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    Summary[SUMMARY, pos:4
+      summary: 1
+        RawText[MARKDOWN, pos:14, abc_`|_def]
+    ]
+  body: 1
+    RawText[MARKDOWN, pos:25, |_rest]
+  block tags: empty
+]
+*/
+
+// While this is an important test case, it is also a negative one.
+// Note how the backticks "match" across the end of the inline tag.
+// That's unfortunate, but cannot reasonably be detected without
+// examining the contents of a code span.
+// Not surprisingly, most of the checks fail for this (bad) test case.
+//    /**md
+//     * {@summary abc `
+//     * def}
+//     * rest `more`
+//     */
+//    void unmatchedBackTickInInline2() { }
+///*
+//DocComment[DOC_COMMENT, pos:0
+//  firstSentence: 1
+//    Summary[SUMMARY, pos:4
+//      summary: 1
+//        Erroneous[ERRONEOUS, pos:14, prefPos:37
+//          code: compiler.err.dc.unterminated.inline.tag
+//          body: abc_`|_def}|_rest_`more`
+//        ]
+//    ]
+//  body: empty
+//  block tags: empty
+//]
+//*/
 
 }
