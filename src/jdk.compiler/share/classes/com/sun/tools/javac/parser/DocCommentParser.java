@@ -1839,7 +1839,7 @@ public class DocCommentParser {
             // {@summary summary-text}
             new TagParser(TagParser.Kind.INLINE, DCTree.Kind.SUMMARY) {
                 @Override
-                public DCTree parse(int pos) throws ParseException {
+                public DCTree parse(int pos) {
                     List<DCTree> summary = inlineContent();
                     return m.at(pos).newSummaryTree(summary);
                 }
