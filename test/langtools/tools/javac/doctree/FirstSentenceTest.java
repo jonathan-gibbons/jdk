@@ -404,18 +404,15 @@ DocComment[DOC_COMMENT, pos:1
   block tags: empty
 ]
 */
-
-    /**md
-     * abc.
-     * def.
-     */
+    ///abc.
+    ///def.
     void simpleMarkdown() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc.]
+    RawText[MARKDOWN, pos:0, abc.]
   body: 1
-    RawText[MARKDOWN, pos:10, def.]
+    RawText[MARKDOWN, pos:5, def.]
   block tags: empty
 ]
 */
@@ -423,24 +420,21 @@ DocComment[DOC_COMMENT, pos:0
 BREAK_ITERATOR
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc.]
-  body: 1
-    RawText[MARKDOWN, pos:10, def.]
+    RawText[MARKDOWN, pos:0, abc.|def.]
+  body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * abc `p.q` def.
-     * ghi.
-     */
+    ///abc `p.q` def.
+    ///ghi.
     void markdownWithCodeSpan() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_`p.q`_def.]
+    RawText[MARKDOWN, pos:0, abc_`p.q`_def.]
   body: 1
-    RawText[MARKDOWN, pos:20, ghi.]
+    RawText[MARKDOWN, pos:15, ghi.]
   block tags: empty
 ]
 */
@@ -448,26 +442,23 @@ DocComment[DOC_COMMENT, pos:0
 BREAK_ITERATOR
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_`p.q`_def.]
-  body: 1
-    RawText[MARKDOWN, pos:20, ghi.]
+    RawText[MARKDOWN, pos:0, abc_`p.q`_def.|ghi.]
+  body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * abc {@code p.q} def.
-     * ghi.
-     */
+    ///abc {@code p.q} def.
+    ///ghi.
     void markdownWithCodeTag() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 3
-    RawText[MARKDOWN, pos:4, abc_]
-    Literal[CODE, pos:8, p.q]
-    RawText[MARKDOWN, pos:19, _def.]
+    RawText[MARKDOWN, pos:0, abc_]
+    Literal[CODE, pos:4, p.q]
+    RawText[MARKDOWN, pos:15, _def.]
   body: 1
-    RawText[MARKDOWN, pos:26, ghi.]
+    RawText[MARKDOWN, pos:21, ghi.]
   block tags: empty
 ]
 */
@@ -475,26 +466,23 @@ DocComment[DOC_COMMENT, pos:0
 BREAK_ITERATOR
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 3
-    RawText[MARKDOWN, pos:4, abc_]
-    Literal[CODE, pos:8, p.q]
-    RawText[MARKDOWN, pos:19, _def.]
-  body: 1
-    RawText[MARKDOWN, pos:26, ghi.]
+    RawText[MARKDOWN, pos:0, abc_]
+    Literal[CODE, pos:4, p.q]
+    RawText[MARKDOWN, pos:15, _def.|ghi.]
+  body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * abc <a href="example.com">example</a> def.
-     * ghi.
-     */
+    ///abc <a href="example.com">example</a> def.
+    ///ghi.
     void markdownWithHtml() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_<a_href="example.com">example</a>_def.]
+    RawText[MARKDOWN, pos:0, abc_<a_href="example.com">example</a>_def.]
   body: 1
-    RawText[MARKDOWN, pos:48, ghi.]
+    RawText[MARKDOWN, pos:43, ghi.]
   block tags: empty
 ]
 */
@@ -502,24 +490,21 @@ DocComment[DOC_COMMENT, pos:0
 BREAK_ITERATOR
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_<a_href="example.com">example</a>_def.]
-  body: 1
-    RawText[MARKDOWN, pos:48, ghi.]
+    RawText[MARKDOWN, pos:0, abc_<a_href="example.com">example</a>_def.|ghi.]
+  body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * abc [example.com][example] def.
-     * ghi.
-     */
+    ///abc [example.com][example] def.
+    ///ghi.
     void markdownWithLinks() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_[example.com][example]_def.]
+    RawText[MARKDOWN, pos:0, abc_[example.com][example]_def.]
   body: 1
-    RawText[MARKDOWN, pos:37, ghi.]
+    RawText[MARKDOWN, pos:32, ghi.]
   block tags: empty
 ]
 */
@@ -527,25 +512,22 @@ DocComment[DOC_COMMENT, pos:0
 BREAK_ITERATOR
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_[example.com][example]_def.]
-  body: 1
-    RawText[MARKDOWN, pos:37, ghi.]
+    RawText[MARKDOWN, pos:0, abc_[example.com][example]_def.|ghi.]
+  body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * abc
-     *
-     * def.
-     */
+    ///abc
+    ///
+    ///def.
     void markdownEndParaNoPeriod() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc]
+    RawText[MARKDOWN, pos:0, abc]
   body: 1
-    RawText[MARKDOWN, pos:10, def.]
+    RawText[MARKDOWN, pos:5, def.]
   block tags: empty
 ]
 */
@@ -553,9 +535,9 @@ DocComment[DOC_COMMENT, pos:0
 BREAK_ITERATOR
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc]
+    RawText[MARKDOWN, pos:0, abc]
   body: 1
-    RawText[MARKDOWN, pos:10, def.]
+    RawText[MARKDOWN, pos:5, def.]
   block tags: empty
 ]
 */

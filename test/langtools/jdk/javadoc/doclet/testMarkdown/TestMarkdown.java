@@ -51,9 +51,7 @@ public class TestMarkdown extends JavadocTester {
         tb.writeJavaFiles(src,
                 """
                     package p;
-                    /**md
-                     * Hello, _Markdown_ world!
-                     */
+                    /// Hello, _Markdown_ world!
                     public class C { }
                     """);
         javadoc("-d", base.resolve("api").toString(),
@@ -74,10 +72,8 @@ public class TestMarkdown extends JavadocTester {
                 """
                     package p;
                     public class C {
-                        /**md
-                         * This is the _first_ sentence.
-                         * This is the _second_ sentence.
-                         */
+                        /// This is the _first_ sentence.
+                        /// This is the _second_ sentence.
                          public void m() { }
                     }
                     """);
@@ -104,15 +100,13 @@ public class TestMarkdown extends JavadocTester {
         tb.writeJavaFiles(src,
                 """
                     package p;
-                    /**md
-                     * Before list.
-                     *
-                     * * item 1
-                     * * item 2
-                     * * item 3
-                     *
-                     * After list.
-                     */
+                    /// Before list.
+                    ///
+                    /// * item 1
+                    /// * item 2
+                    /// * item 3
+                    ///
+                    /// After list.
                     public class C { }
                     """);
         javadoc("-d", base.resolve("api").toString(),
@@ -138,15 +132,13 @@ public class TestMarkdown extends JavadocTester {
         tb.writeJavaFiles(src,
                 """
                     package p;
-                    /**md
-                     Before list.
-
-                     - item 1
-                     - item 2
-                     - item 3
-
-                     After list.
-                     */
+                    /// Before list.
+                    ///
+                    /// - item 1
+                    /// - item 2
+                    /// - item 3
+                    ///
+                    /// After list.
                     public class C { }
                     """);
         javadoc("-d", base.resolve("api").toString(),
@@ -172,9 +164,7 @@ public class TestMarkdown extends JavadocTester {
         tb.writeJavaFiles(src,
                 """
                     package p;
-                    /**md
-                     * Regular, `Monospace`, _italic_, and **bold** font.
-                     */
+                    /// Regular, `Monospace`, _italic_, and **bold** font.
                     public class C { }
                     """);
         javadoc("-d", base.resolve("api").toString(),
@@ -194,20 +184,16 @@ public class TestMarkdown extends JavadocTester {
                 """
                     package p;
                     public class Base {
-                        /**md
-                         * Markdown comment.
-                         * @throws Exception Base _Markdown_
-                         */
-                         public void m() throws Exception { }
+                        /// Markdown comment.
+                        /// @throws Exception Base _Markdown_
+                        public void m() throws Exception { }
                     }""",
                 """
                     package p;
                     public class Derived extends Base {
-                        /**md
-                         * Markdown comment.
-                         * @throws {@inheritDoc}
-                         */
-                         public void m() throws Exception { }
+                        /// Markdown comment.
+                        /// @throws {@inheritDoc}
+                        public void m() throws Exception { }
                     }
                     """);
         javadoc("-d", base.resolve("api").toString(),
@@ -230,11 +216,9 @@ public class TestMarkdown extends JavadocTester {
                 """
                     package p;
                     public class Base {
-                        /**md
-                         * Markdown comment.
-                         * @throws Exception Base _Markdown_
-                         */
-                         public void m() throws Exception { }
+                        /// Markdown comment.
+                        /// @throws Exception Base _Markdown_
+                        public void m() throws Exception { }
                     }""",
                 """
                     package p;
@@ -275,11 +259,9 @@ public class TestMarkdown extends JavadocTester {
                 """
                     package p;
                     public class Derived extends Base {
-                        /**md
-                         * Markdown comment.
-                         * @throws {@inheritDoc}
-                         */
-                         public void m() throws Exception { }
+                        /// Markdown comment.
+                        /// @throws {@inheritDoc}
+                        public void m() throws Exception { }
                     }
                     """);
         javadoc("-d", base.resolve("api").toString(),
@@ -302,15 +284,11 @@ public class TestMarkdown extends JavadocTester {
                 """
                     package p;
                     public class C {
-                        /**md
-                         * Method m1.
-                         * This is different from {@link #m2()}.
-                         */
+                        /// Method m1.
+                        /// This is different from {@link #m2()}.
                         public void m1() { }
-                        /**md
-                         * Method m2.
-                         * This is different from {@link #m1()}.
-                         */
+                        /// Method m2.
+                        /// This is different from {@link #m1()}.
                         public void m2() { }
                     }
                     """);
@@ -333,15 +311,11 @@ public class TestMarkdown extends JavadocTester {
                 """
                     package p;
                     public class C {
-                        /**md
-                         * Method m1.
-                         * This is different from {@linkplain #m2() _Markdown_ m2}.
-                         */
+                        /// Method m1.
+                        /// This is different from {@linkplain #m2() _Markdown_ m2}.
                         public void m1() { }
-                        /**md
-                         * Method m2.
-                         * This is different from {@linkplain #m1() _Markdown_ m1}.
-                         */
+                        /// Method m2.
+                        /// This is different from {@linkplain #m1() _Markdown_ m1}.
                         public void m2() { }
                     }
                     """);
@@ -363,12 +337,10 @@ public class TestMarkdown extends JavadocTester {
         tb.writeJavaFiles(src,
                 """
                     package p;
-                    /**md
-                     * First sentence.
-                     * @see "A reference"
-                     * @see <a href="http://www.example.com">Example</a>
-                     * @see D a _Markdown_ description
-                     */
+                    /// First sentence.
+                    /// @see "A reference"
+                    /// @see <a href="http://www.example.com">Example</a>
+                    /// @see D a _Markdown_ description
                     public class C { }
                     """,
                 """
@@ -398,9 +370,7 @@ public class TestMarkdown extends JavadocTester {
         tb.writeJavaFiles(src,
                 """
                     package p;
-                    /**md
-                     * First sentence. 1{@code 1}1 \ufffc 2{@code 2}2
-                     */
+                    /// First sentence. 1{@code 1}1 \ufffc 2{@code 2}2
                     public class C { }
                     """);
         javadoc("-d", base.resolve("api").toString(),

@@ -67,7 +67,6 @@ import com.sun.source.tree.Scope;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.DocSourcePositions;
 import com.sun.source.util.DocTreePath;
-import com.sun.source.util.DocTreeScanner;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.TreePath;
@@ -205,10 +204,6 @@ public class JavacTrees extends DocTrees {
         init(context);
     }
 
-    public void updateContext(Context context) {
-        init(context);
-    }
-
     private void init(Context context) {
         modules = Modules.instance(context);
         attr = Attr.instance(context);
@@ -268,20 +263,6 @@ public class JavacTrees extends DocTrees {
     @Override @DefinedBy(Api.COMPILER_TREE)
     public DocTreeMaker getDocTreeFactory() {
         return docTreeMaker;
-    }
-
-    private DocTree getLastChild(DocTree tree) {
-        final DocTree[] last = new DocTree[] {null};
-
-        tree.accept(new DocTreeScanner<Void, Void>() {
-            @Override @DefinedBy(Api.COMPILER_TREE)
-            public Void scan(DocTree node, Void p) {
-                if (node != null) last[0] = node;
-                return null;
-            }
-        }, null);
-
-        return last[0];
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
@@ -724,8 +705,8 @@ public class JavacTrees extends DocTrees {
 
     @Override @DefinedBy(Api.COMPILER_TREE)
     public TypeMirror getTypeMirror(TreePath path) {
-        Tree t = path.getLeaf();
-        Type ty = ((JCTree)t).type;
+        Tree leaf = path.getLeaf();
+        Type ty = ((JCTree) leaf).type;
         return ty == null ? null : ty.stripMetadataIfNeeded();
     }
 
@@ -735,25 +716,39 @@ public class JavacTrees extends DocTrees {
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
+    public CommentKind getDocCommentKind(TreePath path) {
+        var compUnit = path.getCompilationUnit();
+        var leaf = path.getLeaf();
+        if (compUnit instanceof JCTree.JCCompilationUnit cu && leaf instanceof JCTree l
+                && cu.docComments != null) {
+            Comment c = cu.docComments.getComment(l);
+            return (c == null) ? null : switch (c.getStyle()) {
+                case JAVADOC -> DocTrees.CommentKind.BLOCK;
+                case MARKDOWN -> DocTrees.CommentKind.LINE;
+                default -> null;
+            };
+        }
+        return null;
+    }
+
+    @Override @DefinedBy(Api.COMPILER_TREE)
     public String getDocComment(TreePath path) {
-        CompilationUnitTree t = path.getCompilationUnit();
-        Tree leaf = path.getLeaf();
-        if (t instanceof JCTree.JCCompilationUnit compilationUnit && leaf instanceof JCTree tree) {
-            if (compilationUnit.docComments != null) {
-                return compilationUnit.docComments.getCommentText(tree);
-            }
+        var compUnit = path.getCompilationUnit();
+        var leaf = path.getLeaf();
+        if (compUnit instanceof JCTree.JCCompilationUnit cu && leaf instanceof JCTree l
+                && cu.docComments != null) {
+            return cu.docComments.getCommentText(l);
         }
         return null;
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
     public DocCommentTree getDocCommentTree(TreePath path) {
-        CompilationUnitTree t = path.getCompilationUnit();
-        Tree leaf = path.getLeaf();
-        if (t instanceof JCTree.JCCompilationUnit compilationUnit && leaf instanceof JCTree tree) {
-            if (compilationUnit.docComments != null) {
-                return compilationUnit.docComments.getCommentTree(tree);
-            }
+        var compUnit = path.getCompilationUnit();
+        var leaf = path.getLeaf();
+        if (compUnit instanceof JCTree.JCCompilationUnit cu && leaf instanceof JCTree l
+                && cu.docComments != null) {
+            return cu.docComments.getCommentTree(l);
         }
         return null;
     }
@@ -1067,12 +1062,27 @@ public class JavacTrees extends DocTrees {
 
             @Override
             public CommentStyle getStyle() {
-                throw new UnsupportedOperationException();
+                return null;
             }
 
             @Override
             public boolean isDeprecated() {
-                throw new UnsupportedOperationException();
+                return false;
+            }
+
+            private String info(FileObject fo) {
+                try {
+                    var text = fo.getCharContent(true).toString();
+                    int MAX_LENGTH = 48;
+                    String ELLIPSIS = "...";
+                    return fo.getName() + ": "
+                            + (text.length() < MAX_LENGTH ? text
+                                : text.substring(0, MAX_LENGTH / 2)
+                                    + ELLIPSIS
+                                    + text.substring(text.length() - MAX_LENGTH / 2));
+                } catch (IOException e) {
+                    return fo.getName() + ": " + e;
+                }
             }
         };
 
@@ -1198,20 +1208,10 @@ public class JavacTrees extends DocTrees {
 
         try {
             switch (kind) {
-            case ERROR:
-                log.error(DiagnosticFlag.API, pos, Errors.ProcMessager(msg.toString()));
-                break;
-
-            case WARNING:
-                log.warning(pos, Warnings.ProcMessager(msg.toString()));
-                break;
-
-            case MANDATORY_WARNING:
-                log.mandatoryWarning(pos, Warnings.ProcMessager(msg.toString()));
-                break;
-
-            default:
-                log.note(pos, Notes.ProcMessager(msg.toString()));
+                case ERROR ->             log.error(DiagnosticFlag.API, pos, Errors.ProcMessager(msg.toString()));
+                case WARNING ->           log.warning(pos, Warnings.ProcMessager(msg.toString()));
+                case MANDATORY_WARNING -> log.mandatoryWarning(pos, Warnings.ProcMessager(msg.toString()));
+                default ->                log.note(pos, Notes.ProcMessager(msg.toString()));
             }
         } finally {
             if (oldSource != null)

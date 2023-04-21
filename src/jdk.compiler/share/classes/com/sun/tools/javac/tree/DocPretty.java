@@ -185,9 +185,6 @@ public class DocPretty implements DocTreeVisitor<Void,Void> {
     @Override @DefinedBy(Api.COMPILER_TREE)
     public Void visitDocComment(DocCommentTree node, Void p) {
         try {
-            if (isMarkdown(node)) {
-                print("md\n");
-            }
             List<? extends DocTree> b = node.getFullBody();
             List<? extends DocTree> t = node.getBlockTags();
             print(b);

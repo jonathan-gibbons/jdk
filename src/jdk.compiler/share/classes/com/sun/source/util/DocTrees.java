@@ -85,6 +85,25 @@ public abstract class DocTrees extends Trees {
     public abstract BreakIterator getBreakIterator();
 
     /**
+     * The style of a documentation comment.
+     * FIXME: need CSR
+     */
+    public enum CommentKind {
+        /** The style of comments whose lines are prefixed by{@code ///}. */
+        LINE,
+        /** The style of comments that begin with {@code /**}. */
+        BLOCK
+    }
+
+    /**
+     * {@retun the style of the documentation comment associated with a tree node.}
+     * FIXME: need CSR
+     *
+     * @param path the path for the tree node
+     */
+    public abstract CommentKind getDocCommentKind(TreePath path);
+
+    /**
      * Returns the doc comment tree, if any, for the Tree node identified by a given TreePath.
      * Returns {@code null} if no doc comment was found.
      *

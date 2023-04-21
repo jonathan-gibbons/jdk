@@ -115,8 +115,6 @@ public class DocCommentParser {
 
     private final Map<Name, TagParser> tagParsers;
 
-    private static final String MARKDOWN_PREFIX = "md";
-
     // TODO: isFileContent should be replaces by file extension if applicable
     public DocCommentParser(ParserFactory fac, DiagnosticSource diagSource,
                             Comment comment, boolean isFileContent) {
@@ -126,16 +124,17 @@ public class DocCommentParser {
         this.comment = comment;
         names = fac.names;
         this.isFileContent = isFileContent;
-        textKind = getTextKind(comment);
+        textKind = isFileContent ? DocTree.Kind.TEXT : getTextKind(comment);
         m = fac.docTreeMaker;
         tagParsers = createTagParsers();
     }
 
     private static DocTree.Kind getTextKind(Comment c) {
-        String t = c.getText();
-        return (t.startsWith(MARKDOWN_PREFIX) && Character.isWhitespace(t.charAt(MARKDOWN_PREFIX.length())))
-                ? DocTree.Kind.MARKDOWN
-                : DocTree.Kind.TEXT;
+        return switch (c.getStyle()) {
+            case JAVADOC -> DocTree.Kind.TEXT;
+            case MARKDOWN -> DocTree.Kind.MARKDOWN;
+            default -> throw new IllegalArgumentException(c.getStyle().name());
+        };
     }
 
     public DocCommentParser(ParserFactory fac, DiagnosticSource diagSource, Comment comment) {
@@ -148,7 +147,7 @@ public class DocCommentParser {
         c.getChars(0, c.length(), buf, 0);
         buf[buf.length - 1] = EOI;
         buflen = buf.length - 1;
-        bp = -1 + (textKind == DocTree.Kind.MARKDOWN ? MARKDOWN_PREFIX.length() : 0);
+        bp = -1;
         nextChar();
 
         List<DCTree> preamble = isFileContent ? content(Phase.PREAMBLE) : List.nil();
@@ -201,6 +200,9 @@ public class DocCommentParser {
     }
 
     protected List<DCTree> blockContent() {
+        while (ch == ' ' && bp < buflen) {
+            nextChar();
+        }
         return content(Phase.BODY);
     }
 
@@ -234,8 +236,11 @@ public class DocCommentParser {
         int pos = bp;                   // only used when phase is INLINE
         LineKind lineKind = textKind == DocTree.Kind.MARKDOWN ? peekLineKind() : null;
 
+        if (DEBUG) System.err.println("starting content " + showPos(bp) + " " + newline);
+
         loop:
         while (bp < buflen) {
+            if (DEBUG) System.err.println("   in content " + showPos(bp) + " " + newline);
             switch (ch) {
                 case '\n', '\r' -> {
                     nextChar();
@@ -259,6 +264,9 @@ public class DocCommentParser {
                 }
 
                 case ' ', '\t' -> {
+                    if (textKind == DocTree.Kind.MARKDOWN && textStart == -1) {
+                        textStart = bp;
+                    }
                     nextChar();
                 }
 
@@ -343,13 +351,16 @@ public class DocCommentParser {
                 }
 
                 case '@' -> {
+                    if (DEBUG) System.err.println("  content @");
                     // check for context-sensitive escape sequences:
                     //   newline whitespace @@
                     //   newline whitespace @*
                     //   *@/
                     if (newline) {
+                        if (DEBUG) System.err.println("  content @ newline");
                         char peek = peekChar();
                         if (peek == '@' || peek == '*') {
+                            if (DEBUG) System.err.println("  content @ newline escape1 " + peek);
                             addPendingText(trees, bp - 1);
                             nextChar();
                             trees.add(m.at(bp - 1).newEscapeTree(ch));
@@ -358,10 +369,12 @@ public class DocCommentParser {
                             textStart = bp;
                             break;
                         } else if (phase == Phase.BODY) {
+                            if (DEBUG) System.err.println("  content @ newline BODY will break loop");
                             addPendingText(trees, lastNonWhite);
                             break loop;
                         }
                     } else if (textStart != -1 && buf[bp - 1] == '*' && peekChar() == '/') {
+                        if (DEBUG) System.err.println("  content @ newline escape2");
                         addPendingText(trees, bp - 1);
                         nextChar();
                         trees.add(m.at(bp - 1).newEscapeTree('/'));
@@ -370,6 +383,7 @@ public class DocCommentParser {
                         textStart = bp;
                         break;
                     }
+                    if (DEBUG) System.err.println("  content @ final default");
                     defaultContentCharacter();
                 }
 
@@ -441,6 +455,7 @@ public class DocCommentParser {
      * Non-standard tags are represented by {@link UnknownBlockTagTree}.
      */
     protected DCTree blockTag() {
+        if (DEBUG) System.err.println("blockTag " + showPos(bp));
         int p = bp;
         try {
             nextChar();
@@ -451,6 +466,7 @@ public class DocCommentParser {
                     List<DCTree> content = blockContent();
                     return m.at(p).newUnknownBlockTagTree(name, content);
                 } else {
+                    if (DEBUG) System.err.println("blockTag " + tp + " " + showPos(bp) + " " + textStart);
                     if (tp.allowsBlock()) {
                         return tp.parse(p, TagParser.Kind.BLOCK);
                     } else {
@@ -466,6 +482,27 @@ public class DocCommentParser {
             blockContent();
             return erroneous(e.getMessage(), p, e.pos);
         }
+    }
+
+    private static final boolean DEBUG = false;
+
+    //DEBUG
+    String showPos(int p) {
+        var sb = new StringBuilder();
+        sb.append("[" + p + "] ");
+        if (p >= 0) {
+            for (int i = Math.max(p - 10, 0); i < Math.min(p + 10, buflen); i++) {
+                if (i == p) sb.append("[");
+                var c = buf[i];
+                sb.append(switch (c) {
+                    case '\n' -> '|';
+                    case ' ' -> '_';
+                    default -> c;
+                });
+                if (i == p) sb.append("]");
+            }
+        }
+        return sb.toString();
     }
 
     /**

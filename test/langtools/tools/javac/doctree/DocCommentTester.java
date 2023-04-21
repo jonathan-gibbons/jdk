@@ -42,7 +42,47 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 
-import com.sun.source.doctree.*;
+import com.sun.source.doctree.AttributeTree;
+import com.sun.source.doctree.AuthorTree;
+import com.sun.source.doctree.CommentTree;
+import com.sun.source.doctree.DeprecatedTree;
+import com.sun.source.doctree.DocCommentTree;
+import com.sun.source.doctree.DocRootTree;
+import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.DocTreeVisitor;
+import com.sun.source.doctree.DocTypeTree;
+import com.sun.source.doctree.EndElementTree;
+import com.sun.source.doctree.EntityTree;
+import com.sun.source.doctree.ErroneousTree;
+import com.sun.source.doctree.EscapeTree;
+import com.sun.source.doctree.HiddenTree;
+import com.sun.source.doctree.IdentifierTree;
+import com.sun.source.doctree.IndexTree;
+import com.sun.source.doctree.InheritDocTree;
+import com.sun.source.doctree.LinkTree;
+import com.sun.source.doctree.LiteralTree;
+import com.sun.source.doctree.ParamTree;
+import com.sun.source.doctree.ProvidesTree;
+import com.sun.source.doctree.RawTextTree;
+import com.sun.source.doctree.ReferenceTree;
+import com.sun.source.doctree.ReturnTree;
+import com.sun.source.doctree.SeeTree;
+import com.sun.source.doctree.SerialDataTree;
+import com.sun.source.doctree.SerialFieldTree;
+import com.sun.source.doctree.SerialTree;
+import com.sun.source.doctree.SinceTree;
+import com.sun.source.doctree.SnippetTree;
+import com.sun.source.doctree.SpecTree;
+import com.sun.source.doctree.StartElementTree;
+import com.sun.source.doctree.SummaryTree;
+import com.sun.source.doctree.SystemPropertyTree;
+import com.sun.source.doctree.TextTree;
+import com.sun.source.doctree.ThrowsTree;
+import com.sun.source.doctree.UnknownBlockTagTree;
+import com.sun.source.doctree.UnknownInlineTagTree;
+import com.sun.source.doctree.UsesTree;
+import com.sun.source.doctree.ValueTree;
+import com.sun.source.doctree.VersionTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.MethodTree;
@@ -58,6 +98,7 @@ import com.sun.tools.javac.tree.DCTree;
 import com.sun.tools.javac.tree.DCTree.DCDocComment;
 import com.sun.tools.javac.tree.DCTree.DCErroneous;
 import com.sun.tools.javac.tree.DocPretty;
+import com.sun.tools.javac.tree.JCTree;
 
 /**
  * A class to test doc comment trees.
@@ -866,6 +907,8 @@ public class DocCommentTester {
                             long startPos = dc.getSourcePosition(dcTree.getStartPosition());
                             String found = getFoundText(cs, (int) startPos, expect.length());
                             if (!found.equals(expect)) {
+                                System.err.println("node: " + node.getKind());
+                                System.err.println("startPos: " + startPos + " " + showPos(cs, (int) startPos));
                                 System.err.println("expect: " + expect);
                                 System.err.println("found:  " + found);
                                 error("mismatch");
@@ -898,6 +941,17 @@ public class DocCommentTester {
         String getFoundText(CharSequence cs, int pos, int len) {
             return (pos == -1) ? "" : cs.subSequence(pos, Math.min(pos + len, cs.length())).toString();
         }
+
+        String showPos(CharSequence cs, int pos) {
+            String s = cs.toString();
+            return (s.substring(Math.max(0, pos - 10), pos)
+                    + "["
+                    + s.charAt(pos)
+                    + "]"
+                    + s.substring(pos + 1, Math.min(s.length(), pos + 10)))
+                    .replace('\n', '|')
+                    .replace(' ', '_');
+        }
     }
 
     /**
@@ -917,8 +971,10 @@ public class DocCommentTester {
                     : "";
             boolean normalizeTags = !annos.equals("@NormalizeTags(false)");
 
-            String raw = trees.getDocComment(path);
-            String normRaw = normalize(raw, normalizeTags);
+            DocTrees.CommentKind ck = trees.getDocCommentKind(path);
+            boolean isMarkdown = ck == DocTrees.CommentKind.LINE;
+            String raw = trees.getDocComment(path).stripTrailing();
+            String normRaw = normalize(raw, isMarkdown, normalizeTags);
 
             StringWriter out = new StringWriter();
             DocPretty dp = new DocPretty(out);
@@ -927,12 +983,25 @@ public class DocCommentTester {
 
             if (!pretty.equals(normRaw)) {
                 error("mismatch");
+                System.err.println("*** raw:");
+                System.err.println(raw.replace(" ", "_"));
                 System.err.println("*** expected:");
                 System.err.println(normRaw.replace(" ", "_"));
                 System.err.println("*** found:");
                 System.err.println(pretty.replace(" ", "_"));
             }
         }
+
+//        Tokens.Comment getComment(TreePath path) {
+//            CompilationUnitTree t = path.getCompilationUnit();
+//            Tree leaf = path.getLeaf();
+//            if (t instanceof JCTree.JCCompilationUnit compilationUnit && leaf instanceof JCTree tree) {
+//                if (compilationUnit.docComments != null) {
+//                    return compilationUnit.docComments.getComment(tree);
+//                }
+//            }
+//            return null;
+//        }
 
         /**
          * Normalize whitespace in places where the tree does not preserve it.
@@ -945,8 +1014,8 @@ public class DocCommentTester {
          * @param normalizeTags whether to normalize inline tags
          * @return the normalized content
          */
-        String normalize(String s, boolean normalizeTags) {
-            String s2 = s.trim()
+        String normalize(String s, boolean isMarkdown, boolean normalizeTags) {
+            String s2 = (isMarkdown ? s : s.trim())
                     .replaceFirst("^md\\s+", "md\n")                // Markdown prefix
                     .replaceFirst("\\.\\s*\\n *@(?![@*])", ".\n@"); // Between block tags
             StringBuilder sb = new StringBuilder();

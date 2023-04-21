@@ -166,15 +166,12 @@ DocComment[DOC_COMMENT, pos:2
 ]
 */
 
-// In Markdown mode, & does not introduce an entity
-    /**md
-     *  abc & def
-     */
+    ///abc & def
     public void markdown() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:5, abc_&_def]
+    RawText[MARKDOWN, pos:0, abc_&_def]
   body: empty
   block tags: empty
 ]

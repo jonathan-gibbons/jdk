@@ -48,508 +48,456 @@
  */
 
 class MarkdownTest {
-    /**md
-     * abc < def & ghi {@code 123} jkl {@unknown} mno.
-     */
+    ///abc < def & ghi {@code 123} jkl {@unknown} mno.
     void descriptionMix() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 5
-    RawText[MARKDOWN, pos:4, abc_<_def_&_ghi_]
-    Literal[CODE, pos:20, 123]
-    RawText[MARKDOWN, pos:31, _jkl_]
-    UnknownInlineTag[UNKNOWN_INLINE_TAG, pos:36
+    RawText[MARKDOWN, pos:0, abc_<_def_&_ghi_]
+    Literal[CODE, pos:16, 123]
+    RawText[MARKDOWN, pos:27, _jkl_]
+    UnknownInlineTag[UNKNOWN_INLINE_TAG, pos:32
       tag:unknown
       content: 1
-        Text[TEXT, pos:45]
+        Text[TEXT, pos:41]
     ]
-    RawText[MARKDOWN, pos:46, _mno.]
+    RawText[MARKDOWN, pos:42, _mno.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * @since abc < def & ghi {@code 123} jkl {@unknown} mno.
-     */
+    ///@since abc < def & ghi {@code 123} jkl {@unknown} mno.
     void blockTagMix() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: empty
   body: empty
   block tags: 1
-    Since[SINCE, pos:4
+    Since[SINCE, pos:0
       body: 5
-        RawText[MARKDOWN, pos:11, abc_<_def_&_ghi_]
-        Literal[CODE, pos:27, 123]
-        RawText[MARKDOWN, pos:38, _jkl_]
-        UnknownInlineTag[UNKNOWN_INLINE_TAG, pos:43
+        RawText[MARKDOWN, pos:7, abc_<_def_&_ghi_]
+        Literal[CODE, pos:23, 123]
+        RawText[MARKDOWN, pos:34, _jkl_]
+        UnknownInlineTag[UNKNOWN_INLINE_TAG, pos:39
           tag:unknown
           content: 1
-            Text[TEXT, pos:52]
+            Text[TEXT, pos:48]
         ]
-        RawText[MARKDOWN, pos:53, _mno.]
+        RawText[MARKDOWN, pos:49, _mno.]
     ]
 ]
 */
 
-    /**md
-     * 123 {@link Object abc < def & ghi {@code 123} jkl {@unknown} mno} 456.
-     */
+    ///123 {@link Object abc < def & ghi {@code 123} jkl {@unknown} mno} 456.
     void inlineTagMix() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 3
-    RawText[MARKDOWN, pos:4, 123_]
-    Link[LINK, pos:8
+    RawText[MARKDOWN, pos:0, 123_]
+    Link[LINK, pos:4
       reference:
-        Reference[REFERENCE, pos:15, Object]
+        Reference[REFERENCE, pos:11, Object]
       body: 5
-        RawText[MARKDOWN, pos:22, abc_<_def_&_ghi_]
-        Literal[CODE, pos:38, 123]
-        RawText[MARKDOWN, pos:49, _jkl_]
-        UnknownInlineTag[UNKNOWN_INLINE_TAG, pos:54
+        RawText[MARKDOWN, pos:18, abc_<_def_&_ghi_]
+        Literal[CODE, pos:34, 123]
+        RawText[MARKDOWN, pos:45, _jkl_]
+        UnknownInlineTag[UNKNOWN_INLINE_TAG, pos:50
           tag:unknown
           content: 1
-            Text[TEXT, pos:63]
+            Text[TEXT, pos:59]
         ]
-        RawText[MARKDOWN, pos:64, _mno]
+        RawText[MARKDOWN, pos:60, _mno]
     ]
-    RawText[MARKDOWN, pos:69, _456.]
+    RawText[MARKDOWN, pos:65, _456.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * 123 `abc` 456.
-     */
+    ///123 `abc` 456.
     void simpleCodeSpan() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123_`abc`_456.]
+    RawText[MARKDOWN, pos:0, 123_`abc`_456.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * 123 ```abc``` 456.
-     */
+    ///123 ```abc``` 456.
     void mediumCodeSpan() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123_```abc```_456.]
+    RawText[MARKDOWN, pos:0, 123_```abc```_456.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * 123 ```abc`def``` 456.
-     */
+    ///123 ```abc`def``` 456.
     void mediumCodeSpanWithBackTicks() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123_```abc`def```_456.]
+    RawText[MARKDOWN, pos:0, 123_```abc`def```_456.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * 123 ```abc{@dummy ...}def``` 456.
-     */
+    ///123 ```abc{@dummy ...}def``` 456.
     void mediumCodeSpanWithNotInlineTag() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123_```abc{@dummy_...}def```_456.]
+    RawText[MARKDOWN, pos:0, 123_```abc{@dummy_...}def```_456.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * 123 ```abc
-     * @dummy def``` 456.
-     */
+    ///123 ```abc
+    ///@dummy def``` 456.
     void mediumCodeSpanWithNotBlockTag() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123_```abc|_@dummy_def```_456.]
+    RawText[MARKDOWN, pos:0, 123_```abc|@dummy_def```_456.]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ```
-     * abc
-     * ```
-     * 456.
-     */
+    ///123.
+    ///```
+    ///abc
+    ///```
+    ///456.
     void simpleFencedCodeBlock_backtick() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 1
-    RawText[MARKDOWN, pos:10, ```|_abc|_```|_456.]
+    RawText[MARKDOWN, pos:5, ```|abc|```|456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ~~~
-     * abc
-     * {@dummy ...}
-     * ~~~
-     * 456.
-     */
+    ///123.
+    ///~~~
+    ///abc
+    ///{@dummy ...}
+    ///~~~
+    ///456.
     void simpleFencedCodeBlock_tilde() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 1
-    RawText[MARKDOWN, pos:10, ~~~|_abc|_{@dummy_...}|_~~~|_456.]
+    RawText[MARKDOWN, pos:5, ~~~|abc|{@dummy_...}|~~~|456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ```
-     * abc {@dummy def} ghi
-     * ```
-     * 456.
-     */
+    ///123.
+    ///```
+    ///abc {@dummy def} ghi
+    ///```
+    ///456.
     void fencedCodeBlockWithInlineTag_backtick() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 1
-    RawText[MARKDOWN, pos:10, ```|_abc_{@dummy_def}_ghi|_```|_456.]
+    RawText[MARKDOWN, pos:5, ```|abc_{@dummy_def}_ghi|```|456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ```
-     * abc ``` ghi
-     * {@dummy ...}
-     * ```
-     * 456.
-     */
+    ///123.
+    ///```
+    ///abc ``` ghi
+    ///{@dummy ...}
+    ///```
+    ///456.
     void fencedCodeBlockWithBackTicks_backtick() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 1
-    RawText[MARKDOWN, pos:10, ```|_abc_```_ghi|_{@dummy_...}|_```|_456.]
+    RawText[MARKDOWN, pos:5, ```|abc_```_ghi|{@dummy_...}|```|456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ```abc`def``` 456.
-     */
+    ///123.
+    ///```abc`def``` 456.
     void codeSpanNotCodeBlock() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 1
-    RawText[MARKDOWN, pos:10, ```abc`def```_456.]
+    RawText[MARKDOWN, pos:5, ```abc`def```_456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ```
-     * {@code ...}
-     * ~~~
-     * 456.
-     */
+    ///123.
+    ///```
+    ///{@code ...}
+    ///~~~
+    ///456.
     void mismatchedFences() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 3
-    RawText[MARKDOWN, pos:10, ```|_]
-    Literal[CODE, pos:15, ...]
-    RawText[MARKDOWN, pos:26, |_~~~|_456.]
+    RawText[MARKDOWN, pos:5, ```|]
+    Literal[CODE, pos:9, ...]
+    RawText[MARKDOWN, pos:20, |~~~|456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * `````
-     * ``` ghi
-     * {@dummy ...}
-     * `````
-     * 456.
-     */
+    ///123.
+    ///`````
+    ///``` ghi
+    ///{@dummy ...}
+    ///`````
+    ///456.
     void fencedCodeBlockWithShortFence_backtick() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 1
-    RawText[MARKDOWN, pos:10, `````|_```_ghi|_{@dummy_...}|_`````|_456.]
+    RawText[MARKDOWN, pos:5, `````|```_ghi|{@dummy_...}|`````|456.]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     *
-     *     abc {@dummy ...}
-     *     @dummy
-     *     def
-     *
-     * 456 {@code ...}.
-     */
+    ///123.
+    ///
+    ///    abc {@dummy ...}
+    ///    @dummy
+    ///    def
+    ///
+    ///456 {@code ...}.
     void indentedCodeBlock_afterBlank() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 3
-    RawText[MARKDOWN, pos:15, abc_{@dummy_...}|_____@dummy|_____def||_456_]
+    RawText[MARKDOWN, pos:10, abc_{@dummy_...}|____@dummy|____def||456_]
+    Literal[CODE, pos:51, ...]
+    RawText[MARKDOWN, pos:62, .]
+  block tags: empty
+]
+*/
+
+    ///123.
+    ///### heading
+    ///    abc {@dummy ...}
+    ///    @dummy
+    ///    def
+    ///456 {@code ...}.
+    void indentedCodeBlock_afterATX() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:0, 123.]
+  body: 3
+    RawText[MARKDOWN, pos:5, ###_heading|____abc_{@dummy_...}|____@dummy|____def|456_]
+    Literal[CODE, pos:61, ...]
+    RawText[MARKDOWN, pos:72, .]
+  block tags: empty
+]
+*/
+
+    ///123.
+    ///Heading
+    ///-------
+    ///    abc {@dummy ...}
+    ///    @dummy
+    ///    def
+    ///456 {@code ...}.
+    void indentedCodeBlock_afterSetext() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:0, 123.]
+  body: 3
+    RawText[MARKDOWN, pos:5, Heading|-------|____abc_{@dummy_...}|____@dummy|____def|456_]
+    Literal[CODE, pos:65, ...]
+    RawText[MARKDOWN, pos:76, .]
+  block tags: empty
+]
+*/
+
+    ///123.
+    ///- - - - -
+    ///    abc {@dummy ...}
+    ///    @dummy
+    ///    def
+    ///456 {@code ...}.
+    void indentedCodeBlock_afterThematicBreak() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:0, 123.]
+  body: 3
+    RawText[MARKDOWN, pos:5, -_-_-_-_-|____abc_{@dummy_...}|____@dummy|____def|456_]
     Literal[CODE, pos:59, ...]
     RawText[MARKDOWN, pos:70, .]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     * ### heading
-     *     abc {@dummy ...}
-     *     @dummy
-     *     def
-     * 456 {@code ...}.
-     */
-    void indentedCodeBlock_afterATX() { }
-/*
-DocComment[DOC_COMMENT, pos:0
-  firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
-  body: 3
-    RawText[MARKDOWN, pos:10, ###_heading|_____abc_{@dummy_...}|_____@dummy|_____def|_456_]
-    Literal[CODE, pos:70, ...]
-    RawText[MARKDOWN, pos:81, .]
-  block tags: empty
-]
-*/
-
-    /**md
-     * 123.
-     * Heading
-     * -------
-     *     abc {@dummy ...}
-     *     @dummy
-     *     def
-     * 456 {@code ...}.
-     */
-    void indentedCodeBlock_afterSetext() { }
-/*
-DocComment[DOC_COMMENT, pos:0
-  firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
-  body: 3
-    RawText[MARKDOWN, pos:10, Heading|_-------|_____abc_{@dummy_...}|_____@dummy|_____def|_456_]
-    Literal[CODE, pos:75, ...]
-    RawText[MARKDOWN, pos:86, .]
-  block tags: empty
-]
-*/
-
-    /**md
-     * 123.
-     * - - - - -
-     *     abc {@dummy ...}
-     *     @dummy
-     *     def
-     * 456 {@code ...}.
-     */
-    void indentedCodeBlock_afterThematicBreak() { }
-/*
-DocComment[DOC_COMMENT, pos:0
-  firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
-  body: 3
-    RawText[MARKDOWN, pos:10, -_-_-_-_-|_____abc_{@dummy_...}|_____@dummy|_____def|_456_]
-    Literal[CODE, pos:68, ...]
-    RawText[MARKDOWN, pos:79, .]
-  block tags: empty
-]
-*/
-
-    /**md
-     * 123.
-     * ```
-     * abc
-     * {@dummy}
-     * def
-     * ```
-     *     abc {@dummy ...}
-     *     @dummy
-     *     def
-     * 456 {@code ...}.
-     */
+    ///123.
+    ///```
+    ///abc
+    ///{@dummy}
+    ///def
+    ///```
+    ///    abc {@dummy ...}
+    ///    @dummy
+    ///    def
+    ///456 {@code ...}.
     void indentedCodeBlock_afterFencedCodeBlock() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 3
-    RawText[MARKDOWN, pos:10, ```|_abc|_{@dummy}|_def|_```|___..._...}|_____@dummy|_____def|_456_]
-    Literal[CODE, pos:87, ...]
-    RawText[MARKDOWN, pos:98, .]
+    RawText[MARKDOWN, pos:5, ```|abc|{@dummy}|def|```|____abc...mmy_...}|____@dummy|____def|456_]
+    Literal[CODE, pos:74, ...]
+    RawText[MARKDOWN, pos:85, .]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     *
-     * ```
-     * public class HelloWorld {
-     *     @dummy
-     *     public static void main(String... args) {
-     *         System.out.println("Hello World");
-     *     }
-     * }
-     * ```
-     * 456 {@code ...}.
-     */
+    ///123.
+    ///
+    ///```
+    ///public class HelloWorld {
+    ///    @dummy
+    ///    public static void main(String... args) {
+    ///        System.out.println("Hello World");
+    ///    }
+    ///}
+    ///```
+    ///456 {@code ...}.
     void fencedHelloWorld() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 3
-    RawText[MARKDOWN, pos:11, ```|_public_class_HelloWorld_{|_...lo_World");|_____}|_}|_```|_456_]
-    Literal[CODE, pos:165, ...]
-    RawText[MARKDOWN, pos:176, .]
+    RawText[MARKDOWN, pos:6, ```|public_class_HelloWorld_{|__..."Hello_World");|____}|}|```|456_]
+    Literal[CODE, pos:152, ...]
+    RawText[MARKDOWN, pos:163, .]
   block tags: empty
 ]
 */
 
-    /**md
-     * 123.
-     *
-     *     public class HelloWorld {
-     *         @dummy
-     *         public static void main(String... args) {
-     *             System.out.println("Hello World");
-     *         }
-     *     }
-     *
-     * 456 {@code ...}.
-     */
+    ///123.
+    ///
+    ///    public class HelloWorld {
+    ///        @dummy
+    ///        public static void main(String... args) {
+    ///            System.out.println("Hello World");
+    ///        }
+    ///    }
+    ///
+    ///456 {@code ...}.
     void indentedHelloWorld() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, 123.]
+    RawText[MARKDOWN, pos:0, 123.]
   body: 3
-    RawText[MARKDOWN, pos:15, public_class_HelloWorld_{|______...orld");|_________}|_____}||_456_]
-    Literal[CODE, pos:180, ...]
-    RawText[MARKDOWN, pos:191, .]
+    RawText[MARKDOWN, pos:10, public_class_HelloWorld_{|______...o_World");|________}|____}||456_]
+    Literal[CODE, pos:169, ...]
+    RawText[MARKDOWN, pos:180, .]
   block tags: empty
 ]
 */
 
-    /**md
-     * {@summary abc ``code-span {@dummy ...}`` def {@code ...} }
-     * rest.
-     */
+    ///{@summary abc ``code-span {@dummy ...}`` def {@code ...} }
+    ///rest.
     void codeSpanInInlineTag() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    Summary[SUMMARY, pos:4
+    Summary[SUMMARY, pos:0
       summary: 3
-        RawText[MARKDOWN, pos:14, abc_``code-span_{@dummy_...}``_def_]
-        Literal[CODE, pos:49, ...]
-        RawText[MARKDOWN, pos:60, _]
+        RawText[MARKDOWN, pos:10, abc_``code-span_{@dummy_...}``_def_]
+        Literal[CODE, pos:45, ...]
+        RawText[MARKDOWN, pos:56, _]
     ]
   body: 1
-    RawText[MARKDOWN, pos:62, |_rest.]
+    RawText[MARKDOWN, pos:58, |rest.]
   block tags: empty
 ]
 */
 
-    /**md
-     * {@summary abc
-     * ```code-block
-     *   {@dummy ...}
-     * ```
-     * def {@code ...} }
-     * rest.
-     */
+    ///{@summary abc
+    ///```code-block
+    ///  {@dummy ...}
+    ///```
+    ///def {@code ...} }
+    ///rest.
     void codeBlockInInlineTag() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    Summary[SUMMARY, pos:4
+    Summary[SUMMARY, pos:0
       summary: 3
-        RawText[MARKDOWN, pos:14, abc|_```code-block|___{@dummy_...}|_```|_def_]
-        Literal[CODE, pos:59, ...]
-        RawText[MARKDOWN, pos:70, _]
+        RawText[MARKDOWN, pos:10, abc|```code-block|__{@dummy_...}|```|def_]
+        Literal[CODE, pos:51, ...]
+        RawText[MARKDOWN, pos:62, _]
     ]
   body: 1
-    RawText[MARKDOWN, pos:72, |_rest.]
+    RawText[MARKDOWN, pos:64, |rest.]
   block tags: empty
 ]
 */
 
-    /**md
-     * abc `
-     * def
-     */
+    ///abc `
+    ///def
     void unmatchedBackTick() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    RawText[MARKDOWN, pos:4, abc_`|_def]
+    RawText[MARKDOWN, pos:0, abc_`|def]
   body: empty
   block tags: empty
 ]
 */
 
-    /**md
-     * {@summary abc `
-     * def}
-     * rest
-     */
+    ///{@summary abc `
+    ///def}
+    ///rest
     void unmatchedBackTickInInline() { }
 /*
 DocComment[DOC_COMMENT, pos:0
   firstSentence: 1
-    Summary[SUMMARY, pos:4
+    Summary[SUMMARY, pos:0
       summary: 1
-        RawText[MARKDOWN, pos:14, abc_`|_def]
+        RawText[MARKDOWN, pos:10, abc_`|def]
     ]
   body: 1
-    RawText[MARKDOWN, pos:25, |_rest]
+    RawText[MARKDOWN, pos:20, |rest]
   block tags: empty
 ]
 */
@@ -559,11 +507,11 @@ DocComment[DOC_COMMENT, pos:0
 // That's unfortunate, but cannot reasonably be detected without
 // examining the contents of a code span.
 // Not surprisingly, most of the checks fail for this (bad) test case.
-//    /**md
-//     * {@summary abc `
-//     * def}
-//     * rest `more`
-//     */
+//    ///
+//    ///{@summary abc `
+//    ///def}
+//    ///rest `more`
+//    ///
 //    void unmatchedBackTickInInline2() { }
 ///*
 //DocComment[DOC_COMMENT, pos:0

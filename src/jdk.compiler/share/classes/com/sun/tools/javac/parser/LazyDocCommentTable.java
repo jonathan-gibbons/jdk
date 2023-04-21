@@ -28,6 +28,7 @@ package com.sun.tools.javac.parser;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.source.util.DocTrees;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.tree.DCTree.DCDocComment;
 import com.sun.tools.javac.tree.DocCommentTable;
