@@ -99,6 +99,7 @@ import com.sun.tools.javac.file.BaseFileManager;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.parser.DocCommentParser;
 import com.sun.tools.javac.parser.ParserFactory;
+import com.sun.tools.javac.parser.ReferenceParser;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
@@ -1107,6 +1108,11 @@ public class JavacTrees extends DocTrees {
     @Override @DefinedBy(Api.COMPILER_TREE)
     public String getCharacters(EntityTree tree) {
         return Entity.getCharacters(tree);
+    }
+
+    @Override
+    public DocCommentTree transform(DocCommentTree tree) {
+        return new MarkdownTransformer(docTreeMaker, new ReferenceParser(parser)).transform((DCDocComment) tree);
     }
 
     /**

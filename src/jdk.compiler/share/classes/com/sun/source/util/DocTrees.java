@@ -271,4 +271,11 @@ public abstract class DocTrees extends Trees {
      * @spec https://www.w3.org/TR/html52 HTML Standard
      */
     public abstract String getCharacters(EntityTree tree);
+
+    /**
+     * FIXME: needs CSR
+     * @param tree
+     * @return
+     */
+    public abstract DocCommentTree transform(DocCommentTree tree);
 }
