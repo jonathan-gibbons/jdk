@@ -59,6 +59,7 @@ import javax.tools.StandardLocation;
 
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.DocTreeVisitor;
 import com.sun.source.doctree.EntityTree;
 import com.sun.source.tree.CatchTree;
 import com.sun.source.tree.ClassTree;
@@ -67,6 +68,7 @@ import com.sun.source.tree.Scope;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.DocSourcePositions;
 import com.sun.source.util.DocTreePath;
+import com.sun.source.util.DocTreeScanner;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.TreePath;
@@ -1112,7 +1114,43 @@ public class JavacTrees extends DocTrees {
 
     @Override
     public DocCommentTree transform(DocCommentTree tree) {
-        return new MarkdownTransformer(docTreeMaker, new ReferenceParser(parser)).transform((DCDocComment) tree);
+        return isMarkdown(tree)
+                ? new MarkdownTransformer(docTreeMaker, new ReferenceParser(parser)).transform((DCDocComment) tree)
+                : tree;
+    }
+
+    /**
+     * A fast scanner for detecting Markdown nodes in documentation comment nodes.
+     * The scanner returns as soon as any Markdown node is found.
+     */
+    private static final DocTreeVisitor<Boolean, Void> isMarkdownVisitor = new DocTreeScanner<Boolean,Void>() {
+        @Override
+        public Boolean scan(Iterable<? extends DocTree> nodes, Void ignore) {
+            if (nodes != null) {
+                boolean first = true;
+                for (DocTree node : nodes) {
+                    Boolean b = scan(node, ignore);
+                    if (b == Boolean.TRUE) {
+                        return b;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Boolean scan(DocTree node, Void ignore) {
+            return node != null && node.getKind() == DocTree.Kind.MARKDOWN ? Boolean.TRUE : super.scan(node, ignore);
+        }
+
+        @Override
+        public Boolean reduce(Boolean r1, Boolean r2) {
+            return r1 == Boolean.TRUE || r2 == Boolean.TRUE;
+        }
+    };
+
+    private boolean isMarkdown(DocCommentTree node) {
+        return isMarkdownVisitor.visitDocComment(node, null);
     }
 
     /**

@@ -197,36 +197,6 @@ public class DocPretty implements DocTreeVisitor<Void,Void> {
         return null;
     }
 
-    private static final DocTreeVisitor<Boolean, Void> isMarkdownVisitor = new DocTreeScanner<Boolean,Void>() {
-        @Override
-        public Boolean scan(Iterable<? extends DocTree> nodes, Void ignore) {
-            if (nodes != null) {
-                boolean first = true;
-                for (DocTree node : nodes) {
-                    Boolean b = scan(node, ignore);
-                    if (b == Boolean.TRUE) {
-                        return b;
-                    }
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public Boolean scan(DocTree node, Void ignore) {
-            return node != null && node.getKind() == DocTree.Kind.MARKDOWN ? Boolean.TRUE : super.scan(node, ignore);
-        }
-
-        @Override
-        public Boolean reduce(Boolean r1, Boolean r2) {
-            return r1 == Boolean.TRUE || r2 == Boolean.TRUE;
-        }
-    };
-
-    private boolean isMarkdown(DocCommentTree node) {
-        return isMarkdownVisitor.visitDocComment(node, null);
-    }
-
     @Override @DefinedBy(Api.COMPILER_TREE)
     public Void visitDocRoot(DocRootTree node, Void p) {
         try {
