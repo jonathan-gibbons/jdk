@@ -96,7 +96,7 @@ public abstract class DocTrees extends Trees {
     }
 
     /**
-     * {@retun the style of the documentation comment associated with a tree node.}
+     * {@return the style of the documentation comment associated with a tree node.}
      * FIXME: need CSR
      *
      * @param path the path for the tree node
