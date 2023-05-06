@@ -81,6 +81,8 @@ import com.sun.source.doctree.TextTree;
 import com.sun.source.util.DocTreePath;
 import com.sun.source.util.SimpleDocTreeVisitor;
 
+import jdk.internal.org.commonmark.Extension;
+import jdk.internal.org.commonmark.ext.gfm.tables.TablesExtension;
 import jdk.internal.org.commonmark.node.Node;
 import jdk.internal.org.commonmark.parser.Parser;
 import jdk.internal.org.commonmark.renderer.html.HtmlRenderer;
@@ -1259,8 +1261,16 @@ public class HtmlDocletWriter {
         StringBuilder markdownInput = new StringBuilder() ;
         ArrayList<Content> fffcObjects = new ArrayList<>();
 
-        Parser parser = Parser.builder().build();
-        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        List<Extension> extns = List.of(
+                TablesExtension.create()
+        );
+
+        Parser parser = Parser.builder()
+                .extensions(extns)
+                .build();
+        HtmlRenderer renderer = HtmlRenderer.builder()
+                .extensions(extns)
+                .build();
 
         boolean handle(DocTree tree, InlineVisitor visitor) {
             boolean allDone;

@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,30 +22,20 @@
  * questions.
  */
 
-/**
- * Internal support for Markdown.
- *
- * @since 21
+/*
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, a notice that is now available elsewhere in this distribution
+ * accompanied the original version of this file, and, per its terms,
+ * should not be removed.
  */
-module jdk.internal.md {
-    requires jdk.compiler;
 
-    exports jdk.internal.markdown to
-            jdk.javadoc,
-            jdk.jshell;
-    exports jdk.internal.org.commonmark to
-            jdk.javadoc,
-            jdk.jshell;
-    exports jdk.internal.org.commonmark.ext.gfm.tables to
-            jdk.javadoc,
-            jdk.jshell;
-    exports jdk.internal.org.commonmark.node to
-            jdk.javadoc,
-            jdk.jshell;
-    exports jdk.internal.org.commonmark.parser to
-            jdk.javadoc,
-            jdk.jshell;
-    exports jdk.internal.org.commonmark.renderer.html to
-            jdk.javadoc,
-            jdk.jshell;
+package jdk.internal.org.commonmark.ext.gfm.tables;
+
+import jdk.internal.org.commonmark.node.CustomNode;
+
+/**
+ * Head part of a {@link TableBlock} containing {@link TableRow TableRows}.
+ */
+public class TableHead extends CustomNode {
 }

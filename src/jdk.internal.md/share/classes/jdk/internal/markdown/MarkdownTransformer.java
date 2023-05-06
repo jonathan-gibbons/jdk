@@ -44,6 +44,7 @@ import com.sun.tools.javac.tree.DCTree;
 import com.sun.tools.javac.tree.DocTreeMaker;
 
 import com.sun.tools.javac.util.DefinedBy;
+import jdk.internal.org.commonmark.ext.gfm.tables.TablesExtension;
 import jdk.internal.org.commonmark.internal.InlineParserImpl;
 import jdk.internal.org.commonmark.node.AbstractVisitor;
 import jdk.internal.org.commonmark.node.Link;
@@ -223,6 +224,7 @@ public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
 
             String source = sourceBuilder.toString();
             Parser parser = Parser.builder()
+                    .extensions(List.of(TablesExtension.create()))
                     .inlineParserFactory(new AutoRefInlineParserFactory(refParser))
                     .includeSourceSpans(IncludeSourceSpans.BLOCKS_AND_INLINES)
                     .build();
