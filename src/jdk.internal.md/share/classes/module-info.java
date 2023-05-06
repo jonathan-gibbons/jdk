@@ -29,18 +29,17 @@
  * @since 21
  */
 module jdk.internal.md {
-    exports jdk.internal.org.commonmark.internal to
-            jdk.compiler;
+    requires jdk.compiler;
+
+    exports jdk.internal.markdown to
+            jdk.javadoc,
+            jdk.jshell;
     exports jdk.internal.org.commonmark.node to
-            jdk.compiler,
             jdk.javadoc,
             jdk.jshell;
     exports jdk.internal.org.commonmark.parser to
-            jdk.compiler,
             jdk.javadoc,
             jdk.jshell;
-    exports jdk.internal.org.commonmark.parser.delimiter to
-            jdk.compiler;
     exports jdk.internal.org.commonmark.renderer.html to
             jdk.javadoc,
             jdk.jshell;

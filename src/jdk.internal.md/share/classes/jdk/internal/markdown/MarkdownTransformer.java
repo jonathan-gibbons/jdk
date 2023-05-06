@@ -23,7 +23,7 @@
  * questions.
  */
 
-package com.sun.tools.javac.api;
+package jdk.internal.markdown;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,6 +38,7 @@ import com.sun.source.doctree.RawTextTree;
 import com.sun.source.util.DocTreeScanner;
 import com.sun.source.util.DocTrees;
 
+import com.sun.tools.javac.api.JavacTrees;
 import com.sun.tools.javac.parser.ReferenceParser;
 import com.sun.tools.javac.tree.DCTree;
 import com.sun.tools.javac.tree.DocTreeMaker;
@@ -80,7 +81,7 @@ public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
             throw new IllegalArgumentException();
         }
         m = t.getDocTreeFactory();
-        refParser = new ReferenceParser(t.parser);
+        refParser = new ReferenceParser(t.getParserFactory());
     }
 
     @Override @DefinedBy(DefinedBy.Api.COMPILER_TREE)

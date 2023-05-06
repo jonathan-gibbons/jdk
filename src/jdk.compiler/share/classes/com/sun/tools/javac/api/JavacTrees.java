@@ -59,7 +59,6 @@ import javax.tools.StandardLocation;
 
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
-import com.sun.source.doctree.DocTreeVisitor;
 import com.sun.source.doctree.EntityTree;
 import com.sun.source.tree.CatchTree;
 import com.sun.source.tree.ClassTree;
@@ -68,7 +67,6 @@ import com.sun.source.tree.Scope;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.DocSourcePositions;
 import com.sun.source.util.DocTreePath;
-import com.sun.source.util.DocTreeScanner;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.TreePath;
@@ -101,7 +99,6 @@ import com.sun.tools.javac.file.BaseFileManager;
 import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.parser.DocCommentParser;
 import com.sun.tools.javac.parser.ParserFactory;
-import com.sun.tools.javac.parser.ReferenceParser;
 import com.sun.tools.javac.parser.Tokens.Comment;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
@@ -174,7 +171,7 @@ public class JavacTrees extends DocTrees {
     private DocTreeMaker docTreeMaker;
     private BreakIterator breakIterator;
     private JavaFileManager fileManager;
-    ParserFactory parser;
+    private ParserFactory parserFactory;
     private Symtab syms;
 
     private DocCommentTreeTransformer docCommentTreeTransformer;
@@ -222,7 +219,7 @@ public class JavacTrees extends DocTrees {
         names = Names.instance(context);
         types = Types.instance(context);
         docTreeMaker = DocTreeMaker.instance(context);
-        parser = ParserFactory.instance(context);
+        parserFactory = ParserFactory.instance(context);
         syms = Symtab.instance(context);
         fileManager = context.get(JavaFileManager.class);
         JavacTask t = context.get(JavacTask.class);
@@ -1091,7 +1088,7 @@ public class JavacTrees extends DocTrees {
             }
         };
 
-        return new DocCommentParser(parser, diagSource, comment, true).parse();
+        return new DocCommentParser(parserFactory, diagSource, comment, true).parse();
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
@@ -1117,7 +1114,11 @@ public class JavacTrees extends DocTrees {
     @Override @DefinedBy(Api.COMPILER_TREE)
     public void setDocCommentTreeTransformer(DocTrees.DocCommentTreeTransformer transformer) {
         this.docCommentTreeTransformer = transformer;
-        parser.setDocCommentTreeTransformer(transformer);
+        parserFactory.setDocCommentTreeTransformer(transformer);
+    }
+
+    public ParserFactory getParserFactory() {
+        return parserFactory;
     }
 
     /**
