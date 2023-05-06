@@ -2265,8 +2265,7 @@ public class Utils {
             TreePath path = getTreePath(element);
             if (path != null) {
                 DocCommentTree docCommentTree = docTrees.getDocCommentTree(path);
-                DocCommentTree xTree = docCommentTree == null ? null : docTrees.transform(docCommentTree);
-                return new DocCommentInfo(path, xTree);
+                return new DocCommentInfo(path, docCommentTree);
             }
         }
         return null;

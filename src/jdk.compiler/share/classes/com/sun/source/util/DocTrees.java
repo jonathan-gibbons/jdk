@@ -28,6 +28,7 @@ package com.sun.source.util;
 import java.io.IOException;
 import java.text.BreakIterator;
 import java.util.List;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
@@ -274,8 +275,13 @@ public abstract class DocTrees extends Trees {
 
     /**
      * FIXME: needs CSR
-     * @param tree
-     * @return
      */
-    public abstract DocCommentTree transform(DocCommentTree tree);
+    public interface DocCommentTreeTransformer {
+        DocCommentTree transform(DocCommentTree tree);
+    }
+
+    /**
+     * FIXME: needs CSR
+     */
+    public abstract void setDocCommentTreeTransformer(DocCommentTreeTransformer transformer);
 }

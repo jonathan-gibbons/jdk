@@ -28,13 +28,21 @@ package com.sun.tools.javac.api;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
+import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.DocTreeVisitor;
 import com.sun.source.doctree.RawTextTree;
+import com.sun.source.util.DocTreeScanner;
+import com.sun.source.util.DocTrees;
+
 import com.sun.tools.javac.parser.ReferenceParser;
 import com.sun.tools.javac.tree.DCTree;
 import com.sun.tools.javac.tree.DocTreeMaker;
+
+import com.sun.tools.javac.util.DefinedBy;
 import jdk.internal.org.commonmark.internal.InlineParserImpl;
 import jdk.internal.org.commonmark.node.AbstractVisitor;
 import jdk.internal.org.commonmark.node.Link;
@@ -57,20 +65,63 @@ import static com.sun.tools.javac.util.Position.NOPOS;
  * The primary extension is to allow references to program elements to be
  * translated to {@code {@link ...}} or {@code {@linkplain ...}} tags.
  */
-public class MarkdownTransformer {
+public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
     private final DocTreeMaker m;
     private final ReferenceParser refParser;
 
-    /**
-     * Creates an instance of a transformer.
-     *
-     * @param maker a factory for new tree nodes
-     * @param refParser the parser for references to program elements
-     */
-    public MarkdownTransformer(DocTreeMaker maker, ReferenceParser refParser) {
-        this.m = maker;
-        this.refParser = refParser;
+    private static WeakHashMap<DocTrees, MarkdownTransformer> instances = new WeakHashMap<>();
+
+    public static MarkdownTransformer instance(DocTrees trees) {
+        return instances.computeIfAbsent(trees, MarkdownTransformer::new);
     }
+
+    private MarkdownTransformer(DocTrees trees) {
+        if (!(trees instanceof JavacTrees t)) {
+            throw new IllegalArgumentException();
+        }
+        m = t.getDocTreeFactory();
+        refParser = new ReferenceParser(t.parser);
+    }
+
+    @Override @DefinedBy(DefinedBy.Api.COMPILER_TREE)
+    public DocCommentTree transform(DocCommentTree tree) {
+        return tree instanceof DCTree.DCDocComment dc && isMarkdown(dc) ? transform(dc) : tree;
+    }
+
+    private boolean isMarkdown(DocCommentTree node) {
+        return isMarkdownVisitor.visitDocComment(node, null);
+    }
+
+    /**
+     * A fast scanner for detecting Markdown nodes in documentation comment nodes.
+     * The scanner returns as soon as any Markdown node is found.
+     */
+    private static final DocTreeVisitor<Boolean, Void> isMarkdownVisitor = new DocTreeScanner<Boolean,Void>() {
+        @Override
+        public Boolean scan(Iterable<? extends DocTree> nodes, Void ignore) {
+            if (nodes != null) {
+                boolean first = true;
+                for (DocTree node : nodes) {
+                    Boolean b = scan(node, ignore);
+                    if (b == Boolean.TRUE) {
+                        return b;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Boolean scan(DocTree node, Void ignore) {
+            return node != null && node.getKind() == DocTree.Kind.MARKDOWN ? Boolean.TRUE : super.scan(node, ignore);
+        }
+
+        @Override
+        public Boolean reduce(Boolean r1, Boolean r2) {
+            return r1 == Boolean.TRUE || r2 == Boolean.TRUE;
+        }
+    };
+
 
     /**
      * Transforms a doc tree node.
@@ -129,7 +180,6 @@ public class MarkdownTransformer {
             default -> throw new IllegalArgumentException(tree.getKind().toString());
         };
     }
-
 
     private static final char PLACEHOLDER = '\uFFFC'; // Unicode Object Replacement Character
 
@@ -481,7 +531,7 @@ public class MarkdownTransformer {
                     // based on whether the "link text" is the same as the "link destination"
                     String ref = dest.substring(AUTOREF_PREFIX.length());
                     int refPos = sourcePosToTreePos(getRefPos(ref, link));
-                    var newRefTree = m.at(refPos).newReferenceTree(ref);
+                    var newRefTree = m.at(refPos).newReferenceTree(ref).setEndPos(refPos + ref.length());
 
                     Node child = link.getFirstChild();
                     DocTree.Kind linkKind = child.getNext() == null
@@ -676,13 +726,17 @@ public class MarkdownTransformer {
                 : m.at(tree.pos).newDeprecatedTree(body2);
     }
 
-
     public DCTree.DCDocComment transform(DCTree.DCDocComment tree) {
         var fullBody2 = transform(tree.fullBody);
         var tags2 = transform(tree.tags);
-        return (equal(fullBody2, tree.fullBody) && equal(tags2, tree.tags))
+        // Note: preamble and postamble only appear in HTML files, so should always be
+        // null or empty for doc comments and/or Markdown files
+        var pre2 = transform(tree.preamble);
+        var post2 = transform(tree.postamble);
+        return (equal(fullBody2, tree.fullBody) && equal(tags2, tree.tags)
+                && equal(pre2, tree.preamble) && equal(post2, tree.postamble))
                 ? tree
-                : m.at(tree.pos).newDocCommentTree(fullBody2, tags2);
+                : m.at(tree.pos).newDocCommentTree(tree.comment, fullBody2, tags2, pre2, post2);
     }
 
     private DCTree.DCHidden transform(DCTree.DCHidden tree) {

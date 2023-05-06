@@ -58,6 +58,7 @@ import com.sun.source.util.DocTrees;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.SourcePositions;
 import com.sun.source.util.TreePath;
+import com.sun.tools.javac.api.MarkdownTransformer;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.MatchingUtils;
@@ -160,6 +161,8 @@ public class Env {
         this.trees = trees;
         this.elements = elements;
         this.types = types;
+
+        this.trees.setDocCommentTreeTransformer(MarkdownTransformer.instance(trees));
     }
 
     void initTypes() {

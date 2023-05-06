@@ -174,8 +174,10 @@ public class JavacTrees extends DocTrees {
     private DocTreeMaker docTreeMaker;
     private BreakIterator breakIterator;
     private JavaFileManager fileManager;
-    private ParserFactory parser;
+    ParserFactory parser;
     private Symtab syms;
+
+    private DocCommentTreeTransformer docCommentTreeTransformer;
 
     private final Map<Type, Type> extraType2OriginalMap = new WeakHashMap<>();
 
@@ -1112,45 +1114,10 @@ public class JavacTrees extends DocTrees {
         return Entity.getCharacters(tree);
     }
 
-    @Override
-    public DocCommentTree transform(DocCommentTree tree) {
-        return isMarkdown(tree)
-                ? new MarkdownTransformer(docTreeMaker, new ReferenceParser(parser)).transform((DCDocComment) tree)
-                : tree;
-    }
-
-    /**
-     * A fast scanner for detecting Markdown nodes in documentation comment nodes.
-     * The scanner returns as soon as any Markdown node is found.
-     */
-    private static final DocTreeVisitor<Boolean, Void> isMarkdownVisitor = new DocTreeScanner<Boolean,Void>() {
-        @Override
-        public Boolean scan(Iterable<? extends DocTree> nodes, Void ignore) {
-            if (nodes != null) {
-                boolean first = true;
-                for (DocTree node : nodes) {
-                    Boolean b = scan(node, ignore);
-                    if (b == Boolean.TRUE) {
-                        return b;
-                    }
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public Boolean scan(DocTree node, Void ignore) {
-            return node != null && node.getKind() == DocTree.Kind.MARKDOWN ? Boolean.TRUE : super.scan(node, ignore);
-        }
-
-        @Override
-        public Boolean reduce(Boolean r1, Boolean r2) {
-            return r1 == Boolean.TRUE || r2 == Boolean.TRUE;
-        }
-    };
-
-    private boolean isMarkdown(DocCommentTree node) {
-        return isMarkdownVisitor.visitDocComment(node, null);
+    @Override @DefinedBy(Api.COMPILER_TREE)
+    public void setDocCommentTreeTransformer(DocTrees.DocCommentTreeTransformer transformer) {
+        this.docCommentTreeTransformer = transformer;
+        parser.setDocCommentTreeTransformer(transformer);
     }
 
     /**

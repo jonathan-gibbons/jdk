@@ -308,6 +308,12 @@ public class Checker extends DocTreePathScanner<Void, Void> {
         env.messages.report(REFERENCE, Kind.WARNING, env.currPath.getLeaf(), code, args);
     }
 
+    @Override
+    public Void scan(DocTreePath path, Void unused) {
+        // interposition point for all scans
+        return super.scan(path, unused);
+    }
+
     @Override @DefinedBy(Api.COMPILER_TREE)
     public Void visitDocComment(DocCommentTree tree, Void ignore) {
         scan(tree.getFirstSentence(), ignore);
