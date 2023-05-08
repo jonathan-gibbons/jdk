@@ -528,4 +528,59 @@ DocComment[DOC_COMMENT, pos:0
 //]
 //*/
 
+    ///Indented by 0.
+    ///
+    ///   * list
+    ///
+    ///    code block
+    ///
+    ///done.
+    void indent0() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:0, Indented_by_0.]
+  body: 1
+    RawText[MARKDOWN, pos:19, *_list||____code_block||done.]
+  block tags: empty
+]
+*/
+
+    /// Indented by 1.
+    ///
+    ///    * list
+    ///
+    ///     code block
+    ///
+    /// done.
+    void indent1() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:0, Indented_by_1.]
+  body: 1
+    RawText[MARKDOWN, pos:19, *_list||____code_block||done.]
+  block tags: empty
+]
+*/
+
+    ///        Indented by 8.
+    ///
+    ///           * list
+    ///
+    ///            code block
+    ///
+    ///        done.
+    void indent8() { }
+/*
+DocComment[DOC_COMMENT, pos:0
+  firstSentence: 1
+    RawText[MARKDOWN, pos:0, Indented_by_8.]
+  body: 1
+    RawText[MARKDOWN, pos:19, *_list||____code_block||done.]
+  block tags: empty
+]
+*/
+
+
 }
