@@ -913,20 +913,10 @@ public class JavaTokenizer extends UnicodeReader {
                     next();
 
                     if (accept('/')) { // (Spec. 3.7)
-                        if (accept('/')) { // Markdown comment
-                            do {
-                                skipToEOLN();
-                                skipLineTerminator();
-                                skipWhitespace();
-                             } while (accept("///"));
+                        skipToEOLN();
 
-                            comments = appendComment(comments, processComment(pos, position(), CommentStyle.MARKDOWN));
-                        } else {
-                            skipToEOLN();
-
-                            if (isAvailable()) {
-                                comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
-                            }
+                        if (isAvailable()) {
+                            comments = appendComment(comments, processComment(pos, position(), CommentStyle.LINE));
                         }
                         break;
                     } else if (accept('*')) { // (Spec. 3.7)
@@ -1322,24 +1312,6 @@ public class JavaTokenizer extends UnicodeReader {
         }
 
         /**
-         * Trim the first part of the Markdown comment.
-         *
-         * @param line line reader
-         *
-         * @return modified line reader
-         */
-        UnicodeReader trimMarkdownComment(UnicodeReader line) {
-            int pos = line.position();
-            line.skipWhitespace();
-
-            if (!line.accept("///")) {
-                line.reset(pos);
-            }
-
-            return line;
-        }
-
-        /**
          * Put the line into the buffer.
          *
          * @param line line reader
@@ -1355,27 +1327,22 @@ public class JavaTokenizer extends UnicodeReader {
             if (!scanned) {
                 deprecatedFlag = false;
                 scanned = true;
-                boolean isMarkdown;
 
-                if (accept("///")) {
-                    isMarkdown = true;
-                } else if (accept("/**")) {
-                    isMarkdown = false;
-                    skip('*');
-                    skipWhitespace();
-
-                    if (isEOLN()) {
-                        accept('\r');
-                        accept('\n');
-                    }
-                } else {
+                if (!accept("/**")) {
                     return;
                 }
 
+                skip('*');
+                skipWhitespace();
+
+                if (isEOLN()) {
+                    accept('\r');
+                    accept('\n');
+                }
 
                 while (isAvailable()) {
                     UnicodeReader line = lineReader();
-                    line = isMarkdown ? trimMarkdownComment(line) : trimJavadocComment(line);
+                    line = trimJavadocComment(line);
 
                     // If standalone @deprecated tag
                     int pos = line.position();
