@@ -299,9 +299,10 @@ public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
                  */
                 @Override
                 public LinkReferenceDefinition getLinkReferenceDefinition(String label) {
-                    var d = inlineParserContext.getLinkReferenceDefinition(label);
-                    return d == null && isReference(label)
-                            ? new LinkReferenceDefinition("", AUTOREF_PREFIX + label, "")
+                    var l = label.replace("\\[\\]", "[]");
+                    var d = inlineParserContext.getLinkReferenceDefinition(l);
+                    return d == null && isReference(l)
+                            ? new LinkReferenceDefinition("", AUTOREF_PREFIX + l, "")
                             : d;
                 }
             });
