@@ -62,6 +62,7 @@ module jdk.javadoc {
 
     requires transitive java.compiler;
     requires transitive jdk.compiler;
+    requires jdk.internal.opt;
 
     exports jdk.javadoc.doclet;
 

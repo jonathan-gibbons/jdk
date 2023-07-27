@@ -60,6 +60,7 @@ import sun.java2d.cmm.ProfileDeferralInfo;
  * through the corresponding tone reproduction curve (TRC). The resulting linear
  * RGB components are converted to the CIEXYZ PCS using a 3x3 matrix
  * constructed from the RGB colorants.
+ *
  * <pre>
  *
  * &nbsp;               linearR = redTRC[deviceR]
@@ -76,6 +77,7 @@ import sun.java2d.cmm.ProfileDeferralInfo;
  * &nbsp;[_ PCSZ _]     [_ redColorantZ  greenColorantZ  blueColorantZ _] [_ linearB _]
  *
  * </pre>
+ *
  * The inverse transform is performed by converting PCS XYZ components to linear
  * RGB components through the inverse of the above 3x3 matrix, and then
  * converting linear RGB to device RGB through inverses of the TRCs.

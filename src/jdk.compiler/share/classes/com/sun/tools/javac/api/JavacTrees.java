@@ -154,25 +154,24 @@ import static com.sun.tools.javac.code.Kinds.Kind.*;
  * @author Peter von der Ah&eacute;
  */
 public class JavacTrees extends DocTrees {
+    private final Modules modules;
+    private final Resolve resolve;
+    private final Enter enter;
+    private final Log log;
+    private final MemberEnter memberEnter;
+    private final Attr attr;
+    private final Check chk;
+    private final TreeMaker treeMaker;
+    private final JavacElements elements;
+    private final JavacTaskImpl javacTaskImpl;
+    private final Names names;
+    private final Types types;
+    private final DocTreeMaker docTreeMaker;
+    private final JavaFileManager fileManager;
+    private final Symtab syms;
 
-    // in a world of a single context per compilation, these would all be final
-    private Modules modules;
-    private Resolve resolve;
-    private Enter enter;
-    private Log log;
-    private MemberEnter memberEnter;
-    private Attr attr;
-    private Check chk;
-    private TreeMaker treeMaker;
-    private JavacElements elements;
-    private JavacTaskImpl javacTaskImpl;
-    private Names names;
-    private Types types;
-    private DocTreeMaker docTreeMaker;
     private BreakIterator breakIterator;
-    private JavaFileManager fileManager;
     private ParserFactory parserFactory;
-    private Symtab syms;
 
     private DocCommentTreeTransformer docCommentTreeTransformer;
 
@@ -203,10 +202,7 @@ public class JavacTrees extends DocTrees {
     protected JavacTrees(Context context) {
         this.breakIterator = null;
         context.put(JavacTrees.class, this);
-        init(context);
-    }
 
-    private void init(Context context) {
         modules = Modules.instance(context);
         attr = Attr.instance(context);
         chk = Check.instance(context);
@@ -222,9 +218,8 @@ public class JavacTrees extends DocTrees {
         parserFactory = ParserFactory.instance(context);
         syms = Symtab.instance(context);
         fileManager = context.get(JavaFileManager.class);
-        JavacTask t = context.get(JavacTask.class);
-        if (t instanceof JavacTaskImpl taskImpl)
-            javacTaskImpl = taskImpl;
+        var task = context.get(JavacTask.class);
+        javacTaskImpl = (task instanceof JavacTaskImpl taskImpl) ? taskImpl : null;
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
