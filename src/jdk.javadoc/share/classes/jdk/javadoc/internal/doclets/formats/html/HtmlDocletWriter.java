@@ -2179,7 +2179,7 @@ public class HtmlDocletWriter {
     private List<DocPath> getStylesheets(Element element) throws DocFileIOException {
         List<DocPath> localStylesheets = configuration.localStylesheetMap.get(element);
         if (localStylesheets == null) {
-            DocFilesHandler docFilesHandler = configuration.getWriterFactory().getDocFilesHandler(element);
+            DocFilesHandler docFilesHandler = configuration.getWriterFactory().newDocFilesHandler(element);
             localStylesheets = docFilesHandler.getStylesheets();
             configuration.localStylesheetMap.put(element, localStylesheets);
         }

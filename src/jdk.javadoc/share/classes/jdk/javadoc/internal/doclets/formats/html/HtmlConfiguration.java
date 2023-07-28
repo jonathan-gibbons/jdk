@@ -187,7 +187,7 @@ public class HtmlConfiguration extends BaseConfiguration {
     /**
      * The set of packages for which we have copied the doc files.
      */
-    private Set<PackageElement> containingPackagesSeen;
+    private final Set<PackageElement> containingPackagesSeen;
 
     /**
      * Constructs the full configuration needed by the doclet, including
@@ -240,6 +240,7 @@ public class HtmlConfiguration extends BaseConfiguration {
         conditionalPages = EnumSet.noneOf(ConditionalPage.class);
     }
 
+    @Override
     protected void initConfiguration(DocletEnvironment docEnv,
                                      Function<String, String> resourceKeyMapper) {
         super.initConfiguration(docEnv, resourceKeyMapper);
@@ -281,7 +282,7 @@ public class HtmlConfiguration extends BaseConfiguration {
     /**
      * {@return the packages for which we have copied the doc files}
      *
-     * @see {@link ClassWriter#copyDocFiles()}
+     * @see ClassWriter#copyDocFiles()
      */
     public Set<PackageElement> getContainingPackagesSeen() {
         return containingPackagesSeen;
