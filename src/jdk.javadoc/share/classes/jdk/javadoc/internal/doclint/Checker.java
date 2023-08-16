@@ -73,6 +73,7 @@ import com.sun.source.doctree.LinkTree;
 import com.sun.source.doctree.LiteralTree;
 import com.sun.source.doctree.ParamTree;
 import com.sun.source.doctree.ProvidesTree;
+import com.sun.source.doctree.RawTextTree;
 import com.sun.source.doctree.ReferenceTree;
 import com.sun.source.doctree.ReturnTree;
 import com.sun.source.doctree.SerialDataTree;
@@ -1009,8 +1010,12 @@ public class Checker extends DocTreePathScanner<Void, Void> {
             env.messages.warning(REFERENCE, tree, "dc.exists.return");
         }
         if (tree.isInline()) {
-            DocCommentTree dct = getCurrentPath().getDocComment();
-            if (dct.getFirstSentence().isEmpty() || tree != dct.getFirstSentence().get(0)) {
+            var dct = getCurrentPath().getDocComment();
+            var first = dct.getFirstSentence().stream()
+                    .filter(t -> !isBlank(t))
+                    .findFirst();
+            if (first.isEmpty() || first.get() != tree) {
+                dct.getFirstSentence().forEach(t -> System.err.println(t.getKind() + ": >>|" + t + "|<<"));
                 env.messages.warning(SYNTAX, tree, "dc.return.not.first");
             }
         }
@@ -1022,6 +1027,14 @@ public class Checker extends DocTreePathScanner<Void, Void> {
         foundReturn = true;
         warnIfEmpty(tree, tree.getDescription());
         return super.visitReturn(tree, ignore);
+    }
+
+    private static boolean isBlank(DocTree t) {
+        return switch (t.getKind()) {
+            case TEXT -> ((TextTree) t).getBody().isBlank();
+            case MARKDOWN -> ((RawTextTree) t).getContent().isBlank();
+            default -> false;
+        };
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
