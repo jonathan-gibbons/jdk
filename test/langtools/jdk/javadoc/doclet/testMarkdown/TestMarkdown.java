@@ -305,6 +305,33 @@ public class TestMarkdown extends JavadocTester {
     }
 
     @Test
+    public void testSimpleRefLink(Path base) throws Exception {
+        Path src = base.resolve("src");
+        tb.writeJavaFiles(src,
+                """
+                    package p;
+                    public class C {
+                        /// Method m1.
+                        /// This is different from [#m2()].
+                        public void m1() { }
+                        /// Method m2.
+                        /// This is different from [#m1()].
+                        public void m2() { }
+                    }
+                    """);
+        javadoc("-d", base.resolve("api").toString(),
+                "-Xdoclint:none",
+                "--source-path", src.toString(),
+                "p");
+
+        checkOutput("p/C.html", true,
+                """
+                    Method m1.
+                    This is different from <a href="#m2()"><code>m2()</code></a>.""");
+
+    }
+
+    @Test
     public void testLinkWithDescription(Path base) throws Exception {
         Path src = base.resolve("src");
         tb.writeJavaFiles(src,
@@ -329,6 +356,79 @@ public class TestMarkdown extends JavadocTester {
                     Method m1.
                     This is different from <a href="#m2()"><em>Markdown</em> m2""");
 
+    }
+
+    @Test
+    public void testRefLinkWithDescription(Path base) throws Exception {
+        Path src = base.resolve("src");
+        tb.writeJavaFiles(src,
+                """
+                    package p;
+                    public class C {
+                        /// Method m1.
+                        /// This is different from [_Markdown_ m2][#m2()].
+                        public void m1() { }
+                        /// Method m2.
+                        /// This is different from [_Markdown_ m1][#m1()]}.
+                        public void m2() { }
+                    }
+                    """);
+        javadoc("-d", base.resolve("api").toString(),
+                "-Xdoclint:none",
+                "--source-path", src.toString(),
+                "p");
+
+        checkOutput("p/C.html", true,
+                """
+                    Method m1.
+                    This is different from <a href="#m2()"><em>Markdown</em> m2""");
+
+    }
+
+    @Test
+    public void testLinkElementKinds(Path base) throws Exception {
+        Path src = base.resolve("src");
+        tb.writeJavaFiles(src,
+                """
+                        package p;
+                        /// First sentence.
+                        ///
+                        /// * module [java.base/]
+                        /// * package [java.util]
+                        /// * class [String] or interface [Runnable]
+                        /// * a field [String#CASE_INSENSITIVE_ORDER]
+                        /// * a constructor [String#String()]
+                        /// * a method [String#chars()]
+                        public class C { }""");
+        javadoc("-d", base.resolve("api").toString(),
+                "-Xdoclint:none",
+                "--source-path", src.toString(),
+                "p");
+
+        // in the following carefully avoid checking the URL host, which is of less importance and may vary over time;
+        // the interesting part is the tail of the path after the host
+        new OutputChecker("p/C.html")
+                .setExpectOrdered(true)
+                .check("module <a href=\"https://",
+                        "/api/java.base/module-summary.html\" class=\"external-link\"><code>java.base</code></a>",
+
+                        "package <a href=\"https://",
+                        "/api/java.base/java/util/package-summary.html\" class=\"external-link\"><code>java.util</code></a>",
+
+                        "class <a href=\"https://",
+                        "/api/java.base/java/lang/String.html\" title=\"class or interface in java.lang\" class=\"external-link\"><code>String</code></a>",
+
+                        "interface <a href=\"https://",
+                        "/api/java.base/java/lang/Runnable.html\" title=\"class or interface in java.lang\" class=\"external-link\"><code>Runnable</code></a>",
+
+                        "a field <a href=\"https://",
+                        "/api/java.base/java/lang/String.html#CASE_INSENSITIVE_ORDER\" title=\"class or interface in java.lang\" class=\"external-link\"><code>String.CASE_INSENSITIVE_ORDER</code></a>",
+
+                        "a constructor <a href=\"https://",
+                        "/api/java.base/java/lang/String.html#%3Cinit%3E()\" title=\"class or interface in java.lang\" class=\"external-link\"><code>String()</code></a></li>",
+
+                        "a method <a href=\"https://",
+                        "/api/java.base/java/lang/String.html#chars()\" title=\"class or interface in java.lang\" class=\"external-link\"><code>String.chars()</code></a>");
     }
 
     @Test
@@ -362,6 +462,38 @@ public class TestMarkdown extends JavadocTester {
                     </ul>
                     </dd>""");
 
+    }
+
+    @Test
+    public void testIndentedInlineReturn(Path base) throws Exception {
+        //this is a Markdown-specific test, because leading whitespace is ignored in HTML comments
+        Path src = base.resolve("src");
+        tb.writeJavaFiles(src,
+                """
+                    package p;
+                    /// Class description.
+                    public class C {
+                        ///    {@return an int}
+                        /// More description.
+                        public int m() { return 0; }
+                    }
+                    """);
+        javadoc("-d", base.resolve("api").toString(),
+                "--source-path", src.toString(),
+                "p");
+
+        checkOutput("p/C.html", true,
+                """
+                    <section class="detail" id="m()">
+                    <h3>m</h3>
+                    <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">m</span>()</div>
+                    <div class="block">Returns an int.
+                    More description.</div>
+                    <dl class="notes">
+                    <dt>Returns:</dt>
+                    <dd>an int</dd>
+                    </dl>
+                    </section>""");
     }
 
     @Test
