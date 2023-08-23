@@ -200,6 +200,11 @@ public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
             var sourceBuilder = new StringBuilder();
             var replacements = new ArrayList<>();
 
+            /*
+             * Step 1: Convert the trees into a string containing Markdown text,
+             *         using Unicode Object Replacement characters to mark the positions
+             *         of non-Markdown content.
+             */
             for (DCTree tree : trees) {
                 if (tree instanceof RawTextTree t) {
                     if (t.getKind() != DocTree.Kind.MARKDOWN) {
@@ -222,6 +227,10 @@ public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
                 }
             }
 
+            /*
+             * Step 2: Build a parser, and configure it to accept additional syntactic constructs,
+             *         such as reference-style links to program elements.
+             */
             String source = sourceBuilder.toString();
             Parser parser = Parser.builder()
                     .extensions(List.of(TablesExtension.create()))
@@ -230,6 +239,12 @@ public class MarkdownTransformer implements DocTrees.DocCommentTreeTransformer {
                     .build();
             Node document = parser.parse(source);
 
+            /*
+             * Step 3: Analyze the parsed tree, converting it back to a list of DocTree nodes,
+             *         consisting of Markdown text interspersed with any pre-existing
+             *         DocTree nodes, as well as any new nodes created by converting
+             *         parts of the Markdown tree into nodes for old-style javadoc tags.
+             */
             Lower v = new Lower(document, source, replacements);
             document.accept(v);
 
