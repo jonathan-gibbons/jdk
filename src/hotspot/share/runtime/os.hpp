@@ -596,8 +596,7 @@ class os: AllStatic {
   static bool start_debugging(char *buf, int buflen);
 
   static address current_stack_pointer();
-  static address current_stack_base();
-  static size_t current_stack_size();
+  static void current_stack_base_and_size(address* base, size_t* size);
 
   static void verify_stack_alignment() PRODUCT_RETURN;
 
@@ -772,7 +771,7 @@ class os: AllStatic {
   static void print_context(outputStream* st, const void* context);
   static void print_tos_pc(outputStream* st, const void* context);
   static void print_tos(outputStream* st, address sp);
-  static void print_instructions(outputStream* st, address pc, int unitsize);
+  static void print_instructions(outputStream* st, address pc, int unitsize = 1);
   static void print_register_info(outputStream* st, const void* context, int& continuation);
   static void print_register_info(outputStream* st, const void* context);
   static bool signal_sent_by_kill(const void* siginfo);
