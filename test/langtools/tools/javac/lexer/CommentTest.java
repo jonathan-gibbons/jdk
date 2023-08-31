@@ -50,6 +50,9 @@ public class CommentTest extends TestRunner {
         super(System.err);
     }
 
+    /**
+     * Control: a simple comment with no blank lines or incidental whitespace.
+     */
     @Test
     public void testControl() {
         test("""
@@ -66,6 +69,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Whitespace before the commennt is completely ignored.
+     */
     @Test
     public void testRaggedInitialIndent() {
         test("""
@@ -82,6 +88,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Leading blank lines are preserved.
+     */
     @Test
     public void testLeadingBlankLine_1() {
         test("""
@@ -100,6 +109,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Leading blank lines do not affect the amount of incidental whitespace.
+     */
     @Test
     public void testLeadingBlankLine_2() {
         test("""
@@ -118,6 +130,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Inner blank lines are preserved.
+     */
     @Test
     public void testInnerBlankLine_1() {
         test("""
@@ -136,6 +151,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Inner blank lines do not affect the amount of incidental whitespace.
+     */
     @Test
     public void testInnerBlankLine_2() {
         test("""
@@ -154,6 +172,53 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Inner blank lines do not affect the amount of incidental whitespace,
+     * but may have whitespace removed, perhaps resulting in an empty line.
+     */
+    @Test
+    public void testInnerBlankLine_3() {
+        test("""
+                [
+
+                  ///    abc
+                  ///  \s
+                  ///    def
+                  ///    ghi
+
+                ]
+                """, """
+                abc
+
+                def
+                ghi""");
+    }
+
+    /**
+     * Inner blank lines do not affect the amount of incidental whitespace,
+     * but may have whitespace removed.
+     */
+    @Test
+    public void testInnerBlankLine_4() {
+        test("""
+                [
+
+                  ///    abc
+                  ///          \s
+                  ///    def
+                  ///    ghi
+
+                ]
+                """, """
+                abc
+                      \s
+                def
+                ghi""");
+    }
+
+    /**
+     * Trailing blank lines are preserved.
+     */
     @Test
     public void testTrailingBlankLine_1() {
         test("""
@@ -172,6 +237,9 @@ public class CommentTest extends TestRunner {
                 """);
     }
 
+    /**
+     * Trailing blank lines do not affect the amount of incidental whitespace.
+     */
     @Test
     public void testTrailingBlankLine_2() {
         test("""
@@ -190,6 +258,9 @@ public class CommentTest extends TestRunner {
                 """);
     }
 
+    /**
+     * Small amounts of incidental whitespace are removed.
+     */
     @Test
     public void testIncidental_small() {
         test("""
@@ -206,6 +277,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Large amounts of incidental whitespace are removed.
+     */
     @Test
     public void testIncidental_large() {
         test("""
@@ -222,6 +296,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Additional leading whitespace may remain after incidental whitespace is removed.
+     */
     @Test
     public void testIncidental_mixed() {
         test("""
@@ -238,6 +315,9 @@ public class CommentTest extends TestRunner {
                   ghi""");
     }
 
+    /**
+     * Tabs and spaces are treated equally, as whitespace characters.
+     */
     @Test
     public void testIncidental_withTabs() {
         test("""
@@ -254,6 +334,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Leading tabs may remain after incidental whitespace is removed.
+     */
     @Test
     public void testTabAfterIncidental() {
         test("""
@@ -270,6 +353,9 @@ public class CommentTest extends TestRunner {
                 ghi""");
     }
 
+    /**
+     * Trailing spaces are never removed.
+     */
     @Test
     public void testTrailingSpaces() {
         test("""
@@ -287,6 +373,9 @@ public class CommentTest extends TestRunner {
 
     }
 
+    /**
+     * Trailing tabs are never removed.
+     */
     @Test
     public void testTrailingTabs() {
         test("""
@@ -304,6 +393,10 @@ public class CommentTest extends TestRunner {
 
     }
 
+    /**
+     * Tabs may appear in incidental whitespace, and may remain in the leading
+     * whitespace after incidental whitespace is removed.
+     */
     @Test
     public void testMixedTabs() {
         test("""
@@ -321,9 +414,15 @@ public class CommentTest extends TestRunner {
 
     }
 
+    /**
+     * A blank line between two /// comments is significant, and separates the two comments.
+     */
     @Test
     public void testMultipleComments() {
-        // when there is more than 1 comment, the most recent comment is first in the list
+        // When there is more than one comment, the most recent comment is first in the list
+        // stored in the token.
+        //
+        // (For JavaDoc, only the most recent comment is used; any preceding comments are ignored.)
         test("""
                 [
 
@@ -338,6 +437,10 @@ public class CommentTest extends TestRunner {
 
     }
 
+    /**
+     * An example of pseudo-typical Markdown, containing various Markdown constructs,
+     * like lists and code blocks.
+     */
     @Test
     public void testSampleMarkdown() {
         test("""
