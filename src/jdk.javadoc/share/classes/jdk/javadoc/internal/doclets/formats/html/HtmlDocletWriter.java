@@ -100,6 +100,7 @@ import jdk.javadoc.internal.doclets.formats.html.markup.Text;
 import jdk.javadoc.internal.doclets.formats.html.markup.TextBuilder;
 import jdk.javadoc.internal.doclets.formats.html.taglets.Taglet;
 import jdk.javadoc.internal.doclets.formats.html.taglets.TagletWriter;
+import jdk.javadoc.internal.doclets.toolkit.DocFileElement;
 import jdk.javadoc.internal.doclets.toolkit.DocletException;
 import jdk.javadoc.internal.doclets.toolkit.Messages;
 import jdk.javadoc.internal.doclets.toolkit.Resources;
@@ -490,7 +491,10 @@ public abstract class HtmlDocletWriter {
     }
 
     /**
-     * Get the window title.
+     * Returns the window title.
+     *
+     * The window title is the composition of the given title and
+     * any value set by the window-title option.
      *
      * @param title the title string to construct the complete window title
      * @return the window title string
@@ -500,6 +504,105 @@ public abstract class HtmlDocletWriter {
             title += " (" + options.windowTitle() + ")";
         }
         return title;
+    }
+
+    /**
+     * {@return the title for a doc-file element}
+     *
+     * For an HTML file, the title is as given in the {@code <title>} element,
+     * as found in the preamble of the doc-comment tree.
+     *
+     * For a Markdown file, there is no direct representation of the page title,
+     * and so the content of the {@code <h1>} heading is used.
+     *
+     * @param element the doc-file element
+     */
+    public String getFileTitle(DocFileElement element) {
+        var fileName = element.getFileObject().getName();
+        if (fileName.endsWith(".html")) {
+            return getTextContent(utils.getPreamble(element), "title");
+        } else if (fileName.endsWith(".md")) {
+            var c = commentTagsToContent(element, utils.getBody(element), false);
+            return getHeadingText(c);
+        } else {
+            throw new IllegalArgumentException(fileName);
+        }
+    }
+
+    /**
+     * {@returns the plain-text content of a named HTML element in a list of content}
+     *
+     * @param trees the list of content
+     * @param name the name og the HTML element
+     */
+    private String getTextContent(List<? extends DocTree> trees, String name) {
+        var sb = new StringBuilder();
+        var collectText = false;
+        loop:
+        for (DocTree dt : trees) {
+            switch (dt.getKind()) {
+                case START_ELEMENT -> {
+                    var nodeStart = (StartElementTree) dt;
+                    if (nodeStart.getName().toString().equalsIgnoreCase(name)) {
+                        collectText = true;
+                    }
+                }
+                case END_ELEMENT -> {
+                    var nodeEnd = (EndElementTree) dt;
+                    if (nodeEnd.getName().toString().equalsIgnoreCase(name)) {
+                        break loop;
+                    }
+                }
+                case TEXT -> {
+                    var nodeText = (TextTree) dt;
+                    if (collectText)
+                        sb.append(nodeText.getBody());
+                }
+                default -> {
+                }
+                // do nothing
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    /**
+     * {@return the content of the {@code <h1>} heading in the given content,
+     * or an empty string if there is no such heading}
+     *
+     * The heading must be at the beginning of the content.
+     * It may be represented in either an HTML tree with tag name {@code h1}
+     * or in a raw HTML node.
+     *
+     * @param c the content
+     */
+    private String getHeadingText(Content c) {
+        var sb = new StringBuilder();
+        if (c instanceof ContentBuilder cb) {
+            var contents = cb.getContents();
+            if (!contents.isEmpty()) {
+                var first = contents.get(0);
+                if (first instanceof HtmlTree htmlTree && htmlTree.tagName.equals(TagName.H1)) {
+                    for (var c2 : htmlTree.getContents()) {
+                        if (c2 instanceof Text t) {
+                            sb.append(t.toString());
+                        } else if (c2 instanceof TextBuilder tb) {
+                            sb.append(tb.toString());
+                        }
+                    }
+                    return sb.toString();
+                } else if (first instanceof RawHtml rawHtml) {
+                    Pattern h1 = Pattern.compile("<h1[^>]*>(.*)</h1>");
+                    Matcher m = h1.matcher(rawHtml.toString());
+                    if (m.lookingAt()) {
+                        var heading = m.group(1);
+                        var headingText = heading.replaceAll("</?[^>]+>", "");
+                        return headingText;
+                    }
+                }
+            }
+        }
+        return "";
     }
 
     /**
@@ -1326,27 +1429,27 @@ public abstract class HtmlDocletWriter {
                 result.add(RawHtml.of(markdownOutput.substring(start)));
             }
         }
-    }
 
-    /*
-     * If a string contains a simple HTML paragraph, beginning with <p>
-     * and ending with </p> and optional whitespace, return the content
-     * of the paragraph between the tags.
-     * Otherwise, return the string unmodified.
-     */
-    private static String unwrap(String s) {
-        var prefix = "<p>";
-        if (s.startsWith(prefix)) {
-            var suffix = "</p>";
-            var suffixPos = s.indexOf(suffix);
-            if (suffixPos > 0) {
-                var endSuffixPos = suffixPos + suffix.length();
-                if (isBlank(s, endSuffixPos, s.length())) {
-                    return s.substring(prefix.length(), suffixPos);
+        /*
+         * If a string contains a simple HTML paragraph, beginning with <p>
+         * and ending with </p> and optional whitespace, return the content
+         * of the paragraph between the tags.
+         * Otherwise, return the string unmodified.
+         */
+        private static String unwrap(String s) {
+            var prefix = "<p>";
+            if (s.startsWith(prefix)) {
+                var suffix = "</p>";
+                var suffixPos = s.indexOf(suffix);
+                if (suffixPos > 0) {
+                    var endSuffixPos = suffixPos + suffix.length();
+                    if (isBlank(s, endSuffixPos, s.length())) {
+                        return s.substring(prefix.length(), suffixPos);
+                    }
                 }
             }
+            return s;
         }
-        return s;
     }
 
     /*

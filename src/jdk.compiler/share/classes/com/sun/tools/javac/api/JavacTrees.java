@@ -171,7 +171,7 @@ public class JavacTrees extends DocTrees {
     private final Symtab syms;
 
     private BreakIterator breakIterator;
-    private ParserFactory parserFactory;
+    private final ParserFactory parserFactory;
 
     private DocCommentTreeTransformer docCommentTreeTransformer;
 
@@ -983,33 +983,40 @@ public class JavacTrees extends DocTrees {
         return flatNameForClass;
     }
 
-    static JavaFileObject asJavaFileObject(FileObject fileObject) {
-        JavaFileObject jfo = null;
+    private static boolean isHtmlFile(FileObject fo) {
+        return fo.getName().endsWith(".html");
+    }
 
-        if (fileObject instanceof JavaFileObject javaFileObject) {
-            checkHtmlKind(fileObject, Kind.HTML);
-            return javaFileObject;
+    private static boolean isMarkdownFile(FileObject fo) {
+        return fo.getName().endsWith(".md");
+    }
+
+
+    static JavaFileObject asDocFileObject(FileObject fo) {
+        if (fo instanceof JavaFileObject jfo) {
+            switch (jfo.getKind()) {
+                case HTML -> {
+                    return jfo;
+                }
+                case OTHER -> {
+                    if (isMarkdownFile(jfo)) {
+                        return jfo;
+                    }
+                }
+            }
+        } else {
+            if (isHtmlFile(fo) || isMarkdownFile(fo)) {
+                return new DocFileObject(fo);
+            }
         }
 
-        checkHtmlKind(fileObject);
-        jfo = new HtmlFileObject(fileObject);
-        return jfo;
+        throw new IllegalArgumentException(("Not a documentation file: " + fo.getName()));
     }
 
-    private static void checkHtmlKind(FileObject fileObject) {
-        checkHtmlKind(fileObject, BaseFileManager.getKind(fileObject.getName()));
-    }
-
-    private static void checkHtmlKind(FileObject fileObject, JavaFileObject.Kind kind) {
-        if (kind != JavaFileObject.Kind.HTML) {
-            throw new IllegalArgumentException("HTML file expected:" + fileObject.getName());
-        }
-    }
-
-    private static class HtmlFileObject extends ForwardingFileObject<FileObject>
+    private static class DocFileObject extends ForwardingFileObject<FileObject>
             implements JavaFileObject {
 
-        public HtmlFileObject(FileObject fileObject) {
+        public DocFileObject(FileObject fileObject) {
             super(fileObject);
         }
 
@@ -1036,7 +1043,7 @@ public class JavacTrees extends DocTrees {
 
     @Override @DefinedBy(Api.COMPILER_TREE)
     public DocCommentTree getDocCommentTree(FileObject fileObject) {
-        JavaFileObject jfo = asJavaFileObject(fileObject);
+        JavaFileObject jfo = asDocFileObject(fileObject);
         DiagnosticSource diagSource = new DiagnosticSource(jfo, log);
 
         final Comment comment = new Comment() {
@@ -1059,7 +1066,9 @@ public class JavacTrees extends DocTrees {
 
             @Override
             public CommentStyle getStyle() {
-                return null;
+                return isHtmlFile(fileObject) ? CommentStyle.JAVADOC
+                        : isMarkdownFile(fileObject) ? CommentStyle.MARKDOWN
+                        : null;
             }
 
             @Override
@@ -1083,12 +1092,14 @@ public class JavacTrees extends DocTrees {
             }
         };
 
-        return new DocCommentParser(parserFactory, diagSource, comment, true).parse();
+        boolean isHtmlFile = jfo.getKind() == Kind.HTML;
+
+        return new DocCommentParser(parserFactory, diagSource, comment, isHtmlFile).parse();
     }
 
     @Override @DefinedBy(Api.COMPILER_TREE)
     public DocTreePath getDocTreePath(FileObject fileObject, PackageElement packageElement) {
-        JavaFileObject jfo = asJavaFileObject(fileObject);
+        JavaFileObject jfo = asDocFileObject(fileObject);
         DocCommentTree docCommentTree = getDocCommentTree(jfo);
         if (docCommentTree == null)
             return null;

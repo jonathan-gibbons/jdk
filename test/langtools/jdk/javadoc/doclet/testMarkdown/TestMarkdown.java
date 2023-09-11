@@ -512,7 +512,60 @@ public class TestMarkdown extends JavadocTester {
 
         checkOutput("p/C.html", true,
                 """
-                        <div class="block">First sentence. 1<code>1</code>1 \ufffc 2<code>2</code>2</div>
-                        """);
+                    <div class="block">First sentence. 1<code>1</code>1 \ufffc 2<code>2</code>2</div>
+                    """);
+    }
+
+    @Test
+    public void testDocFile(Path base) throws Exception {
+        Path src = base.resolve("src");
+        tb.writeJavaFiles(src,
+                """
+                package p;
+                /// First sentence.
+                public class C { }
+                """);
+        tb.writeFile(src.resolve("p").resolve("doc-files").resolve("markdown.md"),
+                """
+                # This is a _Markdown_ heading
+                
+                Lorem ipsum""");
+
+        javadoc("-d", base.resolve("api").toString(),
+                "-Xdoclint:none",
+                "--source-path", src.toString(),
+                "p");
+
+        checkOutput("p/doc-files/markdown.html", true,
+                """
+                    <title>This is a Markdown heading</title>
+                    """);
+    }
+
+    @Test
+    public void testOverview(Path base) throws Exception {
+        Path src = base.resolve("src");
+        tb.writeJavaFiles(src,
+                """
+                package p;
+                /// First sentence.
+                public class C { }
+                """);
+        var overviewFile = src.resolve("overview.md");
+        tb.writeFile(overviewFile,
+                """
+                This is a _Markdown_ overview.
+                Lorem ipsum""");
+
+        javadoc("-d", base.resolve("api").toString(),
+                "-Xdoclint:none",
+                "-overview", overviewFile.toString(),
+                "--source-path", src.toString(),
+                "p");
+
+        checkOutput("index.html", true,
+                """
+                    <div class="block">This is a <em>Markdown</em> overview.
+                    Lorem ipsum</div>""");
     }
 }

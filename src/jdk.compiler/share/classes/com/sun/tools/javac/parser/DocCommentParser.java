@@ -95,7 +95,7 @@ public class DocCommentParser {
     private final Comment comment;
     private final DocTreeMaker m;
     private final Names names;
-    private final boolean isFileContent;
+    private final boolean isHtmlFile;
     private final DocTree.Kind textKind;
 
     /** The input buffer, index of most recent character read,
@@ -115,16 +115,40 @@ public class DocCommentParser {
 
     private final Map<Name, TagParser> tagParsers;
 
-    // TODO: isFileContent should be replaces by file extension if applicable
+    /**
+     * Creates a parser for a documentation comment.
+     *
+     * @param fac a parser factory, for a doc-tree maker and for reference parsers
+     * @param diagSource the source in which the comment was found
+     * @param comment the comment
+     */
+    public DocCommentParser(ParserFactory fac, DiagnosticSource diagSource, Comment comment) {
+        this(fac, diagSource, comment, false);
+    }
+
+    /**
+     * Create a parser for a documentation comment.
+     *
+     * If the comment is the content of a standalone HTML file, it will be parsed
+     * in three parts: a preamble (up to and including the {@code <main>} tag,
+     * or {@code <body>} tag if there is no {@code <main>} tag, then the main content
+     * of the file, and then finally the end part of the file starting at the
+     * end tag matching the tag that ended the preamble.
+     *
+     * @param fac a parser factory, for a doc-tree maker and for reference parsers
+     * @param diagSource the source in which the comment was found
+     * @param comment the comment
+     * @param isHtmlFile whether the comment is the entire content of an HTML file
+     */
     public DocCommentParser(ParserFactory fac, DiagnosticSource diagSource,
-                            Comment comment, boolean isFileContent) {
+                            Comment comment, boolean isHtmlFile) {
         this.fac = fac;
         this.diags = fac.log.diags;
         this.diagSource = diagSource;
         this.comment = comment;
         names = fac.names;
-        this.isFileContent = isFileContent;
-        textKind = isFileContent ? DocTree.Kind.TEXT : getTextKind(comment);
+        this.isHtmlFile = isHtmlFile;
+        textKind = isHtmlFile ? DocTree.Kind.TEXT : getTextKind(comment);
         m = fac.docTreeMaker;
         tagParsers = createTagParsers();
     }
@@ -137,10 +161,6 @@ public class DocCommentParser {
         };
     }
 
-    public DocCommentParser(ParserFactory fac, DiagnosticSource diagSource, Comment comment) {
-        this(fac, diagSource, comment, false);
-    }
-
     public DCDocComment parse() {
         String c = comment.getText();
         buf = new char[c.length() + 1];
@@ -150,10 +170,10 @@ public class DocCommentParser {
         bp = -1;
         nextChar();
 
-        List<DCTree> preamble = isFileContent ? content(Phase.PREAMBLE) : List.nil();
+        List<DCTree> preamble = isHtmlFile ? content(Phase.PREAMBLE) : List.nil();
         List<DCTree> body = content(Phase.BODY);
         List<DCTree> tags = blockTags();
-        List<DCTree> postamble = isFileContent ? content(Phase.POSTAMBLE) : List.nil();
+        List<DCTree> postamble = isHtmlFile ? content(Phase.POSTAMBLE) : List.nil();
 
         int pos = textKind == DocTree.Kind.MARKDOWN  ? 0
                 : !preamble.isEmpty() ? preamble.head.pos
@@ -286,7 +306,7 @@ public class DocCommentParser {
                         }
                         case TEXT -> {
                             newline = false;
-                            if (isFileContent) {
+                            if (isHtmlFile) {
                                 switch (phase) {
                                     case PREAMBLE -> {
                                         if (isEndPreamble()) {
@@ -489,7 +509,7 @@ public class DocCommentParser {
     //DEBUG
     String showPos(int p) {
         var sb = new StringBuilder();
-        sb.append("[" + p + "] ");
+        sb.append("[").append(p).append("] ");
         if (p >= 0) {
             for (int i = Math.max(p - 10, 0); i < Math.min(p + 10, buflen); i++) {
                 if (i == p) sb.append("[");

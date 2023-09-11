@@ -133,10 +133,10 @@ public abstract class DocTrees extends Trees {
     public abstract DocCommentTree getDocCommentTree(Element e);
 
     /**
-     * Returns the doc comment tree of the given file. The file must be
-     * an HTML file, in which case the doc comment tree represents the
-     * entire contents of the file.
-     * Returns {@code null} if no doc comment was found.
+     * Returns the doc comment tree of the given file, which must
+     * be of one of the supported file types.
+     *
+     * Supported file types are HTML files and Markdown files.
      * Future releases may support additional file types.
      *
      * @implNote The default implementation of this method returns a
@@ -144,16 +144,18 @@ public abstract class DocTrees extends Trees {
      *
      * @param fileObject the content container
      * @return the doc comment tree
+     * @throws IllegalArgumentException if the file type is not supported
+     *
      * @since 9
      */
     public abstract DocCommentTree getDocCommentTree(FileObject fileObject);
 
     /**
-     * Returns the doc comment tree of the given file whose path is
-     * specified relative to the given element. The file must be an HTML
-     * file, in which case the doc comment tree represents the contents
-     * of the &lt;body&gt; tag, and any enclosing tags are ignored.
-     * Returns {@code null} if no doc comment was found.
+     * Returns the doc comment tree of the given file, which must
+     * be of one of the supported file types, and whose path is
+     * specified relative to the given element.
+     *
+     * Supported file types are HTML files and Markdown files.
      * Future releases may support additional file types.
      *
      * @implNote The default implementation of this method returns a
@@ -162,16 +164,20 @@ public abstract class DocTrees extends Trees {
      * @param e an element whose path is used as a reference
      * @param relativePath the relative path from the Element
      * @return the doc comment tree
-     * @throws java.io.IOException if an exception occurs
+     * @throws IOException if an exception occurs
+     * @throws IllegalArgumentException if the file type is not supported
      *
      * @since 9
      */
     public abstract DocCommentTree getDocCommentTree(Element e, String relativePath) throws IOException;
 
     /**
-     * Returns a doc tree path containing the doc comment tree of the given file.
-     * The file must be an HTML file, in which case the doc comment tree represents
-     * the contents of the {@code <body>} tag, and any enclosing tags are ignored.
+     * Returns a doc tree path containing the doc comment tree of the given file,
+     * which must be of one of the supported file types.
+     *
+     * Supported file types are HTML files and Markdown files.
+     * Future releases may support additional file types.
+     *
      * Any references to source code elements contained in {@code @see} and
      * {@code {@link}} tags in the doc comment tree will be evaluated in the
      * context of the given package element.
@@ -181,7 +187,7 @@ public abstract class DocTrees extends Trees {
      * @param packageElement a package element to associate with the given file object
      * representing a legacy package.html, null otherwise
      * @return a doc tree path containing the doc comment parsed from the given file
-     * @throws IllegalArgumentException if the fileObject is not an HTML file
+     * @throws IllegalArgumentException if the file type is not supported
      *
      * @since 9
      */
