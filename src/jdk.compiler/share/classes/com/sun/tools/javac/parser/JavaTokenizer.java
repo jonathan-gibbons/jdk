@@ -1071,7 +1071,7 @@ public class JavaTokenizer extends UnicodeReader {
                                 skipWhitespace();
                              } while (accept("///"));
 
-                            comments = appendComment(comments, processComment(pos, endPos, CommentStyle.MARKDOWN));
+                            comments = appendComment(comments, processComment(pos, endPos, CommentStyle.JAVADOC_LINE));
                         } else {
                             skipToEOLN();
 
@@ -1085,7 +1085,7 @@ public class JavaTokenizer extends UnicodeReader {
                         CommentStyle style;
 
                         if (accept('*')) {
-                            style = CommentStyle.JAVADOC;
+                            style = CommentStyle.JAVADOC_BLOCK;
 
                             if (is('/')) {
                                 isEmpty = true;

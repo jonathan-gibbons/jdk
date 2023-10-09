@@ -274,10 +274,10 @@ public class Tokens {
     public interface Comment {
 
         enum CommentStyle {
-            LINE,       // starting with //
-            BLOCK,      // starting with /*
-            JAVADOC,    // starting with /**
-            MARKDOWN    // starting with ///
+            LINE,            // starting with //   -- also known in JLS as "end-of-line comment"
+            BLOCK,           // starting with /*   -- also known in JLS as "traditional comment"
+            JAVADOC_LINE,    // starting with ///
+            JAVADOC_BLOCK    // starting with /**
         }
 
         String getText();
@@ -359,7 +359,7 @@ public class Tokens {
          * Preserve classic semantics - if multiple javadocs are found on the token
          * the last one is returned
          */
-        public Comment comment(Comment.CommentStyle style) {
+        public Comment docComment() {
             List<Comment> comments = getDocComments();
             return comments.isEmpty() ?
                     null :
@@ -386,9 +386,8 @@ public class Tokens {
                 ListBuffer<Comment> buf = new ListBuffer<>();
                 for (Comment c : comments) {
                     Comment.CommentStyle style = c.getStyle();
-                    if (style == Comment.CommentStyle.JAVADOC ||
-                        style == Comment.CommentStyle.MARKDOWN) {
-                        buf.add(c);
+                    switch (style) {
+                        case JAVADOC_BLOCK, JAVADOC_LINE -> buf.add(c);
                     }
                 }
                 return buf.toList();

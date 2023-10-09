@@ -87,7 +87,8 @@ public abstract class DocTrees extends Trees {
 
     /**
      * The style of a documentation comment.
-     * FIXME: need CSR
+     * 
+     * @since 22
      */
     public enum CommentKind {
         /** The style of comments whose lines are prefixed by{@code ///}. */
@@ -98,9 +99,11 @@ public abstract class DocTrees extends Trees {
 
     /**
      * {@return the style of the documentation comment associated with a tree node.}
-     * FIXME: need CSR
      *
      * @param path the path for the tree node
+     *    
+     * @see Trees#getPath(Element) 
+     * @since 22
      */
     public abstract CommentKind getDocCommentKind(TreePath path);
 

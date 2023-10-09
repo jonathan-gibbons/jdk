@@ -155,8 +155,8 @@ public class DocCommentParser {
 
     private static DocTree.Kind getTextKind(Comment c) {
         return switch (c.getStyle()) {
-            case JAVADOC -> DocTree.Kind.TEXT;
-            case MARKDOWN -> DocTree.Kind.MARKDOWN;
+            case JAVADOC_BLOCK -> DocTree.Kind.TEXT;
+            case JAVADOC_LINE -> DocTree.Kind.MARKDOWN;
             default -> throw new IllegalArgumentException(c.getStyle().name());
         };
     }

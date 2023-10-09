@@ -720,8 +720,8 @@ public class JavacTrees extends DocTrees {
                 && cu.docComments != null) {
             Comment c = cu.docComments.getComment(l);
             return (c == null) ? null : switch (c.getStyle()) {
-                case JAVADOC -> DocTrees.CommentKind.BLOCK;
-                case MARKDOWN -> DocTrees.CommentKind.LINE;
+                case JAVADOC_BLOCK -> DocTrees.CommentKind.BLOCK;
+                case JAVADOC_LINE -> DocTrees.CommentKind.LINE;
                 default -> null;
             };
         }
@@ -1066,8 +1066,8 @@ public class JavacTrees extends DocTrees {
 
             @Override
             public CommentStyle getStyle() {
-                return isHtmlFile(fileObject) ? CommentStyle.JAVADOC
-                        : isMarkdownFile(fileObject) ? CommentStyle.MARKDOWN
+                return isHtmlFile(fileObject) ? CommentStyle.JAVADOC_BLOCK
+                        : isMarkdownFile(fileObject) ? CommentStyle.JAVADOC_LINE
                         : null;
             }
 

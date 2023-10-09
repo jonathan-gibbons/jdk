@@ -27,16 +27,7 @@
  * Provides interfaces to represent documentation comments as abstract syntax
  * trees (AST).
  *
- * <h2>Markdown</h2>
- *
- * Various classes defined in this package contain a list of {@link DocTree} nodes,
- * which may represent {@linkplain TextTree plain text}, {@linkplain EntityTree entities},
- * {@linkplain InlineTagTree inline} and {@linkplain BlockTagTree block} tags,
- * {@linkplain StartElementTree start} and {@linkplain EndElementTree end} HTML elements,
- * and uninterpreted {@linkplain RawTextTree raw text}, such as for Markdown.
- *
  * @spec javadoc/doc-comment-spec.html Documentation Comment Specification for the Standard Doclet
- * @author Jonathan Gibbons
  * @since 1.8
  *
  */

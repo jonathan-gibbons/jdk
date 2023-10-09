@@ -226,9 +226,16 @@ public class DocTreeMaker implements DocTreeFactory {
                 return Position.NOPOS;
             }
 
+            // Currently, the style for a synthetic comment is not user-visible
+            // through the {@link DocTrees} API. Nevertheless, we heuristically
+            // infer a suitable style, based on the {@code preamble}, {@code postamble},
+            // and {@code fullBody}.
             @Override
             public CommentStyle getStyle() {
-                return CommentStyle.JAVADOC;
+                return preamble.isEmpty()
+                        && postamble.isEmpty()
+                        && fullBody.stream().anyMatch(t -> t.getKind() == Kind.MARKDOWN)
+                        ? CommentStyle.JAVADOC_LINE : CommentStyle.JAVADOC_BLOCK;
             }
 
             @Override

@@ -980,9 +980,9 @@ public class DocCommentTester {
             boolean normalizeTags = !annos.contains("@NormalizeTags(false)");
 
             DocTrees.CommentKind ck = trees.getDocCommentKind(path);
-            boolean isMarkdown = ck == DocTrees.CommentKind.LINE;
+            boolean isLineComment = ck == DocTrees.CommentKind.LINE;
             String raw = trees.getDocComment(path).stripTrailing();
-            String normRaw = normalize(raw, isMarkdown, normalizeTags);
+            String normRaw = normalize(raw, isLineComment, normalizeTags);
 
             StringWriter out = new StringWriter();
             DocPretty dp = new DocPretty(out);
@@ -1022,9 +1022,8 @@ public class DocCommentTester {
          * @param normalizeTags whether to normalize inline tags
          * @return the normalized content
          */
-        String normalize(String s, boolean isMarkdown, boolean normalizeTags) {
-            String s2 = (isMarkdown ? s : s.trim())
-                    .replaceFirst("^md\\s+", "md\n")                // Markdown prefix
+        String normalize(String s, boolean isLineComment, boolean normalizeTags) {
+            String s2 = (isLineComment ? s : s.trim())
                     .replaceFirst("\\.\\s*\\n *@(?![@*])", ".\n@"); // Between block tags
             StringBuilder sb = new StringBuilder();
             Pattern p = Pattern.compile("(?i)\\{@([a-z][a-z0-9.:-]*)( )?");
