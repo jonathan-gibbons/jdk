@@ -139,7 +139,11 @@ public abstract class DocTrees extends Trees {
      * Returns the doc comment tree of the given file, which must
      * be of one of the supported file types.
      *
-     * Supported file types are HTML files and Markdown files.
+     * <p>The supported file types are:
+     * <ul>
+     * <li>HTML files, identified by a file name ending in {@code .html},
+     * <li>Markdown files, identified by a file name ending in {@code .md}.
+     * </ul>
      * Future releases may support additional file types.
      *
      * @implNote The default implementation of this method returns a
@@ -158,7 +162,11 @@ public abstract class DocTrees extends Trees {
      * be of one of the supported file types, and whose path is
      * specified relative to the given element.
      *
-     * Supported file types are HTML files and Markdown files.
+     * <p>The supported file types are:
+     * <ul>
+     * <li>HTML files, identified by a file name ending in {@code .html},
+     * <li>Markdown files, identified by a file name ending in {@code .md}.
+     * </ul>
      * Future releases may support additional file types.
      *
      * @implNote The default implementation of this method returns a
