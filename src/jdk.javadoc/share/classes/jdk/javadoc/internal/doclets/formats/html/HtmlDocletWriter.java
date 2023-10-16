@@ -613,7 +613,7 @@ public abstract class HtmlDocletWriter {
      *
      * @return the {@code <header>} element
      */
-    protected HtmlTree getHeader(Navigation.PageMode pageMode) {
+    protected Content getHeader(Navigation.PageMode pageMode) {
         return getHeader(pageMode, null);
     }
 
@@ -626,10 +626,10 @@ public abstract class HtmlDocletWriter {
      *
      * @return the {@code <header>} element
      */
-    protected HtmlTree getHeader(Navigation.PageMode pageMode, Element element) {
+    protected Content getHeader(Navigation.PageMode pageMode, Element element) {
         return HtmlTree.HEADER()
-                .add(RawHtml.of(replaceDocRootDir(options.top())))
-                .add(getNavBar(pageMode, element).getContent());
+                        .add(RawHtml.of(replaceDocRootDir(options.top())))
+                        .add(getNavBar(pageMode, element).getContent());
     }
 
     /**
